@@ -7,10 +7,6 @@ import styles from './Login.less';
 
 const { Tab, UserName, Password, Mobile, Captcha, Submit } = Login;
 
-export default @connect(({ login, loading }) => ({
-  login,
-  submitting: loading.effects['login/login'],
-}))
 
 class LoginPage extends Component {
   state = {
@@ -101,22 +97,27 @@ class LoginPage extends Component {
             <Checkbox checked={autoLogin} onChange={this.changeAutoLogin}>
               自动登录
             </Checkbox>
-            <a style={{ float: 'right' }} href="">
-              忘记密码
-            </a>
+            {/*<a style={{ float: 'right' }} href="">*/}
+            {/*忘记密码*/}
+            {/*</a>*/}
           </div>
           <Submit loading={submitting}>登录</Submit>
-          <div className={styles.other}>
-            其他登录方式
-            <Icon className={styles.icon} type="alipay-circle"/>
-            <Icon className={styles.icon} type="taobao-circle"/>
-            <Icon className={styles.icon} type="weibo-circle"/>
-            <Link className={styles.register} to="/User/Register">
-              注册账户
-            </Link>
-          </div>
+          {/*<div className={styles.other}>*/}
+          {/*其他登录方式*/}
+          {/*<Icon className={styles.icon} type="alipay-circle"/>*/}
+          {/*<Icon className={styles.icon} type="taobao-circle"/>*/}
+          {/*<Icon className={styles.icon} type="weibo-circle"/>*/}
+          {/*<Link className={styles.register} to="/User/Register">*/}
+          {/*注册账户*/}
+          {/*</Link>*/}
+          {/*</div>*/}
         </Login>
       </div>
     );
   }
 }
+
+export default connect(({ login, loading }) => ({
+  login,
+  submitting: loading.effects['login/login'],
+}))(LoginPage);

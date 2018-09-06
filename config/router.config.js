@@ -16,8 +16,68 @@ export default [
     component: '../layouts/BasicLayout',
     Routes: ['src/pages/Authorized'],
     routes: [
-      // dashboard
-      { path: '/', redirect: '/dashboard/analysis' },
+      // user info
+      { path: '/', redirect: '/usercenter' },
+      {
+        path: '/usercenter',
+        name: 'usercenter',
+        icon: 'home',
+        component: './UserCenter/UserCenterInfo',
+      },
+      {
+        path: '/manager',
+        name: 'accountmanager',
+        icon: 'user',
+        routes: [
+          {
+            path: '/manager/agent',
+            name: 'agent',
+            component: './AccountManager/AgentList',
+          },
+          {
+            path: '/manager/viplist',
+            name: 'viplist',
+            component: './AccountManager/VipList',
+          },
+          {
+            path: '/manager/deleteagent',
+            name: 'deleteagent',
+            component: './AccountManager/DeleteAgentList',
+          },
+          {
+            path: '/manager/deletevip',
+            name: 'deletevip',
+            component: './AccountManager/DeleteVipList',
+          },
+        ],
+      },
+      {
+        path: '/report',
+        name: 'report',
+        icon: 'bar-chart',
+        routes: [
+          {
+            path: '/report/agent',
+            name: 'agent',
+            component: './ReportManager/AgentDayReport',
+          },
+          {
+            path: '/report/vipReport',
+            name: 'vip',
+            component: './ReportManager/VipDayReport',
+          },
+          {
+            path: '/report/recharge',
+            name: 'recharge',
+            component: './ReportManager/RechargeReport',
+          },
+          {
+            path: '/report/online',
+            name: 'onlineUser',
+            component: './ReportManager/OnlineAccount',
+          },
+        ],
+      },
       {
         path: '/dashboard',
         name: 'dashboard',
