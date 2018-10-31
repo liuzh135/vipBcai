@@ -1,5 +1,113 @@
 @import '~antd/lib/style/themes/default.less';
 @ease-in-out-circ: cubic-bezier(0.78, 0.14, 0.15, 0.86);
+@import '~@/utils/utils.less';
+
+//=======userCenter======start--//
+.logouser {
+  background: #002140;
+}
+.avatarHolder {
+  text-align: center;
+  margin-bottom: 24px;
+
+  & > img {
+    width: 104px;
+    height: 104px;
+    margin-bottom: 20px;
+  }
+
+  .name {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
+    color: #fff;
+    //color: @heading-color;
+    margin-bottom: 4px;
+  }
+}
+
+.detail {
+  display: flex;
+  justify-content: center;
+
+  padding-bottom: 20px;
+  p {
+    margin-bottom: 8px;
+    padding-left: 26px;
+    position: relative;
+    text-align: center;
+    color: #fff;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  i {
+    position: absolute;
+    height: 14px;
+    width: 14px;
+    left: 0;
+    top: 4px;
+    background: url(https://gw.alipayobjects.com/zos/rmsportal/pBjWzVAHnOOtAUvZmZfy.svg);
+
+    &.title {
+      background-position: 0 0;
+    }
+
+    &.group {
+      background-position: 0 -22px;
+    }
+
+    &.address {
+      background-position: 0 -44px;
+    }
+  }
+}
+
+.tagsTitle,
+.teamTitle {
+  font-weight: 500;
+  color: @heading-color;
+  margin-bottom: 12px;
+}
+
+.tags {
+  :global {
+    .ant-tag {
+      margin-bottom: 8px;
+    }
+  }
+}
+
+.team {
+  :global {
+    .ant-avatar {
+      margin-right: 12px;
+    }
+  }
+
+  a {
+    display: block;
+    margin-bottom: 24px;
+    color: @text-color;
+    transition: color 0.3s;
+    .textOverflow();
+
+    &:hover {
+      color: @primary-color;
+    }
+  }
+}
+
+.tabsCard {
+  :global {
+    .ant-card-head {
+      padding: 0 16px;
+    }
+  }
+}
+//=======userCenter======end--//
+
 .logo {
   height: 64px;
   position: relative;
@@ -37,6 +145,9 @@
   &.light {
     box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
     background-color: white;
+    .logouser {
+      background: white;
+    }
     .logo {
       background: white;
       border-bottom: 1px solid @border-color-split;

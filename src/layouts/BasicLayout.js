@@ -4,6 +4,7 @@ import DocumentTitle from 'react-document-title';
 import isEqual from 'lodash/isEqual';
 import memoizeOne from 'memoize-one';
 import { connect } from 'dva';
+import router from 'umi/router';
 import { ContainerQuery } from 'react-container-query';
 import classNames from 'classnames';
 import pathToRegexp from 'path-to-regexp';
@@ -16,35 +17,43 @@ import logo from '../assets/logo.svg';
 import Footer from './Footer';
 import Header from './Header';
 import Context from './MenuContext';
+import Exception403 from '../pages/Exception/403';
 
 const { Content } = Layout;
-const { check } = Authorized;
 
 // Conversion router to menu.
-function formatter(data, parentPath = '', parentAuthority, parentName) {
-  return data.map(item => {
-    let locale = 'menu';
-    if (parentName && item.name) {
-      locale = `${parentName}.${item.name}`;
-    } else if (item.name) {
-      locale = `menu.${item.name}`;
-    } else if (parentName) {
-      locale = parentName;
-    }
-    const result = {
-      ...item,
-      locale,
-      authority: item.authority || parentAuthority,
-    };
-    if (item.routes) {
-      const children = formatter(item.routes, `${parentPath}${item.path}/`, item.authority, locale);
-      // Reduce memory usage
-      result.children = children;
-    }
-    delete result.routes;
-    return result;
-  });
+function formatter(data, parentAuthority, parentName) {
+  return data
+    .map(item => {
+      let locale = 'menu';
+      if (parentName && item.name) {
+        locale = `${parentName}.${item.name}`;
+      } else if (item.name) {
+        locale = `menu.${item.name}`;
+      } else if (parentName) {
+        locale = parentName;
+      }
+      if (item.path) {
+        const result = {
+          ...item,
+          locale,
+          authority: item.authority || parentAuthority,
+        };
+        if (item.routes) {
+          const children = formatter(item.routes, item.authority, locale);
+          // Reduce memory usage
+          result.children = children;
+        }
+        delete result.routes;
+        return result;
+      }
+
+      return null;
+    })
+    .filter(item => item);
 }
+
+const memoizeOneFormatter = memoizeOne(formatter, isEqual);
 
 const query = {
   'screen-xs': {
@@ -77,11 +86,13 @@ class BasicLayout extends React.PureComponent {
     this.getPageTitle = memoizeOne(this.getPageTitle);
     this.getBreadcrumbNameMap = memoizeOne(this.getBreadcrumbNameMap, isEqual);
     this.breadcrumbNameMap = this.getBreadcrumbNameMap();
+    this.matchParamsPath = memoizeOne(this.matchParamsPath, isEqual);
   }
 
   state = {
     rendering: true,
     isMobile: false,
+    menuData: this.getMenuData(),
   };
 
   componentDidMount() {
@@ -107,8 +118,15 @@ class BasicLayout extends React.PureComponent {
     });
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(preProps) {
+    // After changing to phone mode,
+    // if collapsed is true, you need to click twice to display
     this.breadcrumbNameMap = this.getBreadcrumbNameMap();
+    const { isMobile } = this.state;
+    const { collapsed } = this.props;
+    if (isMobile && !preProps.isMobile && !collapsed) {
+      this.handleMenuCollapse(false);
+    }
   }
 
   componentWillUnmount() {
@@ -128,7 +146,7 @@ class BasicLayout extends React.PureComponent {
     const {
       route: { routes },
     } = this.props;
-    return formatter(routes);
+    return memoizeOneFormatter(routes);
   }
 
   /**
@@ -150,27 +168,30 @@ class BasicLayout extends React.PureComponent {
     return routerMap;
   }
 
+  matchParamsPath = pathname => {
+    const pathKey = Object.keys(this.breadcrumbNameMap).find(key =>
+      pathToRegexp(key).test(pathname)
+    );
+    return this.breadcrumbNameMap[pathKey];
+  };
+
   getPageTitle = pathname => {
-    let currRouterData = null;
-    // match params path
-    Object.keys(this.breadcrumbNameMap).forEach(key => {
-      if (pathToRegexp(key).test(pathname)) {
-        currRouterData = this.breadcrumbNameMap[key];
-      }
-    });
+    const currRouterData = this.matchParamsPath(pathname);
+
     if (!currRouterData) {
-      return 'vipBocai';
+      return 'Ant Design Pro';
     }
     const message = formatMessage({
       id: currRouterData.locale || currRouterData.name,
       defaultMessage: currRouterData.name,
     });
-    return `${message} - vipBocai`;
+    return `${message} - Ant Design Pro`;
   };
 
   getLayoutStyle = () => {
+    const { isMobile } = this.state;
     const { fixSiderbar, collapsed, layout } = this.props;
-    if (fixSiderbar && layout !== 'topmenu') {
+    if (fixSiderbar && layout !== 'topmenu' && !isMobile) {
       return {
         paddingLeft: collapsed ? '80px' : '256px',
       };
@@ -186,33 +207,36 @@ class BasicLayout extends React.PureComponent {
     };
   };
 
-  getBashRedirect = () => {
-    // According to the url parameter to redirect
-    // 这里是重定向的,重定向到 url 的 redirect 参数所示地址
-    const urlParams = new URL(window.location.href);
-
-    const redirect = urlParams.searchParams.get('redirect');
-    // Remove the parameters in the url
-    if (redirect) {
-      urlParams.searchParams.delete('redirect');
-      window.history.replaceState(null, 'redirect', urlParams.href);
-    } else {
-      const { routerData } = this.props;
-      // get the first authorized route path in routerData
-      const authorizedPath = Object.keys(routerData).find(
-        item => check(routerData[item].authority, item) && item !== '/'
-      );
-      return authorizedPath;
-    }
-    return redirect;
-  };
-
   handleMenuCollapse = collapsed => {
     const { dispatch } = this.props;
     dispatch({
       type: 'global/changeLayoutCollapsed',
       payload: collapsed,
     });
+  };
+
+  renderSettingDrawer() {
+    // Do not render SettingDrawer in production
+    // unless it is deployed in preview.pro.ant.design as demo
+    const { rendering } = this.state;
+    if ((rendering || process.env.NODE_ENV === 'production') && APP_TYPE !== 'site') {
+      return null;
+    }
+    return <SettingDrawer />;
+  }
+
+  //充值回调接口 手机端需要把菜单收回去
+  handleRecharge = () => {
+    const { isMobile } = this.state;
+    if (isMobile) this.handleMenuCollapse(true);
+    router.push('/recharge/rechargePage');
+  };
+
+  //提现回调接口 手机端需要把菜单收回去
+  handlePutForward = () => {
+    const { isMobile } = this.state;
+    if (isMobile) this.handleMenuCollapse(true);
+    router.push('/recharge/putforward');
   };
 
   render() {
@@ -222,9 +246,9 @@ class BasicLayout extends React.PureComponent {
       children,
       location: { pathname },
     } = this.props;
-    const { rendering, isMobile } = this.state;
+    const { isMobile, menuData } = this.state;
     const isTop = PropsLayout === 'topmenu';
-    const menuData = this.getMenuData();
+    const routerConfig = this.matchParamsPath(pathname);
     const layout = (
       <Layout>
         {isTop && !isMobile ? null : (
@@ -233,6 +257,8 @@ class BasicLayout extends React.PureComponent {
             Authorized={Authorized}
             theme={navTheme}
             onCollapse={this.handleMenuCollapse}
+            onRecharge={this.handleRecharge}
+            onPutForward={this.handlePutForward}
             menuData={menuData}
             isMobile={isMobile}
             {...this.props}
@@ -251,7 +277,14 @@ class BasicLayout extends React.PureComponent {
             isMobile={isMobile}
             {...this.props}
           />
-          <Content style={this.getContentStyle()}>{children}</Content>
+          <Content style={this.getContentStyle()}>
+            <Authorized
+              authority={routerConfig && routerConfig.authority}
+              noMatch={<Exception403 />}
+            >
+              {children}
+            </Authorized>
+          </Content>
           <Footer />
         </Layout>
       </Layout>
@@ -267,15 +300,14 @@ class BasicLayout extends React.PureComponent {
             )}
           </ContainerQuery>
         </DocumentTitle>
-        {rendering && process.env.NODE_ENV === 'production' ? null : ( // Do show SettingDrawer in production
-          <SettingDrawer />
-        )}
+        {this.renderSettingDrawer()}
       </React.Fragment>
     );
   }
 }
 
-export default connect(({ global, setting }) => ({
+export default connect(({ user, global, setting }) => ({
+  currentUser: user.currentUser,
   collapsed: global.collapsed,
   layout: setting.layout,
   ...setting,

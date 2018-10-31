@@ -15,10 +15,16 @@ export default {
   effects: {
     *login({ payload }, { call, put }) {
       const response = yield call(fakeAccountLogin, payload);
+      console.log('------response----->' + JSON.stringify(response));
+      //重组数据
+      response.status = response.code === 0 ? 'ok' : 'error';
+      response.type = payload.type;
+      response.currentAuthority = response.status === 'ok' ? 'admin' : 'error';
       yield put({
         type: 'changeLoginStatus',
         payload: response,
       });
+
       // Login successfully
       if (response.status === 'ok') {
         reloadAuthorized();
@@ -72,6 +78,7 @@ export default {
         ...state,
         status: payload.status,
         type: payload.type,
+        message: payload.message,
       };
     },
   },

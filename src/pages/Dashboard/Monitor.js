@@ -21,13 +21,12 @@ const havePermissionAsync = new Promise(resolve => {
   setTimeout(() => resolve(), 300);
 });
 
-export default
 @Secured(havePermissionAsync)
 @connect(({ monitor, loading }) => ({
   monitor,
   loading: loading.models.monitor,
 }))
-class Monitor extends PureComponent {
+export default class Monitor extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
@@ -59,11 +58,7 @@ class Monitor extends PureComponent {
                   <NumberInfo subTitle="活动剩余时间" total={<CountDown target={targetTime} />} />
                 </Col>
                 <Col md={6} sm={12} xs={24}>
-                  <NumberInfo
-                    subTitle="每秒交易总额"
-                    suffix="元"
-                    total={numeral(234).format('0,0')}
-                  />
+                  <NumberInfo Y suffix="元" total={numeral(234).format('0,0')} />
                 </Col>
               </Row>
               <div className={styles.mapChart}>

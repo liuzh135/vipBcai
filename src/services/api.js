@@ -104,10 +104,15 @@ export async function updateFakeList(params) {
 }
 
 export async function fakeAccountLogin(params) {
-  return request('/api/login/account', {
-    method: 'POST',
-    body: params,
-  });
+  // return request('/api/login/account', {
+  //   method: 'POST',
+  //   body: params,
+  // });
+  return request(`http://120.77.252.48/sso/login?${stringify(params)}`);
+  // return request('http://120.77.252.48/sso/login',{
+  //     method: 'POST',
+  //     body: params,
+  //   });
 }
 
 export async function fakeRegister(params) {

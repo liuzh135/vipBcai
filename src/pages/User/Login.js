@@ -7,7 +7,6 @@ import styles from './Login.less';
 
 const { Tab, UserName, Password, Mobile, Captcha, Submit } = Login;
 
-
 class LoginPage extends Component {
   state = {
     type: 'account',
@@ -56,7 +55,7 @@ class LoginPage extends Component {
   };
 
   renderMessage = content => (
-    <Alert style={{ marginBottom: 24 }} message={content} type="error" showIcon/>
+    <Alert style={{ marginBottom: 24 }} message={content} type="error" showIcon />
   );
 
   render() {
@@ -75,10 +74,10 @@ class LoginPage extends Component {
         >
           <Tab key="account" tab="账户密码登录">
             {login.status === 'error' &&
-            login.type === 'account' &&
-            !submitting &&
-            this.renderMessage('账户或密码错误（admin/888888）')}
-            <UserName name="userName" placeholder="admin/user"/>
+              login.type === 'account' &&
+              !submitting &&
+              this.renderMessage(login.message ? login.message : '账户或密码错误（admin/888888）')}
+            <UserName name="username" placeholder="admin/user" />
             <Password
               name="password"
               placeholder="888888/123456"
@@ -87,11 +86,11 @@ class LoginPage extends Component {
           </Tab>
           <Tab key="mobile" tab="手机号登录">
             {login.status === 'error' &&
-            login.type === 'mobile' &&
-            !submitting &&
-            this.renderMessage('验证码错误')}
-            <Mobile name="mobile"/>
-            <Captcha name="vcode" countDown={120} onGetCaptcha={this.onGetCaptcha}/>
+              login.type === 'mobile' &&
+              !submitting &&
+              this.renderMessage('验证码错误')}
+            <Mobile name="mobile" />
+            <Captcha name="vcode" countDown={120} onGetCaptcha={this.onGetCaptcha} />
           </Tab>
           <div>
             <Checkbox checked={autoLogin} onChange={this.changeAutoLogin}>
@@ -101,6 +100,7 @@ class LoginPage extends Component {
             {/*忘记密码*/}
             {/*</a>*/}
           </div>
+
           <Submit loading={submitting}>登录</Submit>
           {/*<div className={styles.other}>*/}
           {/*其他登录方式*/}

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Layout } from 'antd';
+import { Card, Button, Layout } from 'antd';
 import pathToRegexp from 'path-to-regexp';
 import Link from 'umi/link';
 import styles from './index.less';
@@ -86,9 +86,19 @@ export default class SiderMenu extends PureComponent {
   };
 
   render() {
-    const { logo, collapsed, onCollapse, fixSiderbar, theme } = this.props;
+    const {
+      logo,
+      collapsed,
+      onCollapse,
+      fixSiderbar,
+      theme,
+      currentUser,
+      onRecharge,
+      onPutForward,
+    } = this.props;
     const { openKeys } = this.state;
     const defaultProps = collapsed ? {} : { openKeys };
+    //collapsed false 隐藏充值体现功能
     return (
       <Sider
         trigger={null}
@@ -107,6 +117,26 @@ export default class SiderMenu extends PureComponent {
             <h1>vipBocai</h1>
           </Link>
         </div>
+        {!collapsed && currentUser && Object.keys(currentUser).length ? (
+          <div className={styles.logouser} key="logouser" id="logouser">
+            <div className={styles.avatarHolder}>
+              <img alt="" src={currentUser.avatar} />
+              <div className={styles.name}>{currentUser.name}</div>
+              <div className={styles.name}>{currentUser.signature}</div>
+            </div>
+            <div className={styles.detail}>
+              <Button type="primary" onClick={onRecharge} style={{ backgroundColor: '#ff6162' }}>
+                充值
+              </Button>
+              <Button type="primary" onClick={onPutForward} style={{ marginLeft: '20px' }}>
+                提现
+              </Button>
+            </div>
+          </div>
+        ) : (
+          'loading...'
+        )}
+
         <BaseMenu
           {...this.props}
           key="Menu"

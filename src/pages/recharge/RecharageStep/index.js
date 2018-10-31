@@ -1,7 +1,7 @@
 import React, { PureComponent, Fragment } from 'react';
 import { Card, Steps } from 'antd';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
-import styles from '../style.less';
+import styles from '../../Forms/style.less';
 
 // import { Route, Redirect, Switch } from 'dva/router';
 // import { getRoutes } from '@/utils/utils';
@@ -29,9 +29,9 @@ export default class RechargeStepForm extends PureComponent {
     const { location, children } = this.props;
     return (
       <PageHeaderWrapper
-        title="分步表单"
+        title="转账充值"
         tabActiveKey={location.pathname}
-        content="将一个冗长或用户不熟悉的表单任务分成多个步骤，指导用户完成。"
+        content="转账充值成功，系统管理人员会在2个工作日内审核。审核通过之后会把对应的积分充值到用户帐号内。"
       >
         <Card bordered={false}>
           <Fragment>

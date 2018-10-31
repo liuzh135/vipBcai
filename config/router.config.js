@@ -25,6 +25,48 @@ export default [
         component: './UserCenter/UserCenterInfo',
       },
       {
+        //充值提现
+        name: 'recharge',
+        icon: 'pay-circle',
+        path: '/recharge',
+        hideInMenu: true,
+        routes: [
+          {
+            path: '/recharge/rechargePage',
+            name: 'recharge',
+            component: './recharge/RecharageStep',
+            hideChildrenInMenu: true,
+            routes: [
+              {
+                path: '/recharge/rechargePage',
+                name: 'recharge',
+                redirect: '/recharge/rechargePage/info',
+              },
+              {
+                path: '/recharge/rechargePage/info',
+                name: 'info',
+                component: './recharge/RecharageStep/Step1',
+              },
+              {
+                path: '/recharge/rechargePage/confirm',
+                name: 'confirm',
+                component: './recharge/RecharageStep/Step2',
+              },
+              {
+                path: '/recharge/rechargePage/result',
+                name: 'result',
+                component: './recharge/RecharageStep/Step3',
+              },
+            ],
+          },
+          {
+            path: '/recharge/putforward',
+            name: 'putforward',
+            component: './recharge/Putforward',
+          },
+        ],
+      },
+      {
         path: '/manager',
         name: 'accountmanager',
         icon: 'user',

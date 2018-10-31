@@ -27,6 +27,14 @@ export default {
       });
       yield put(routerRedux.push('/form/step-form/result'));
     },
+    *submitRechargeStepForm({ payload }, { call, put }) {
+      yield call(fakeSubmitForm, payload);
+      yield put({
+        type: 'saveStepFormData',
+        payload,
+      });
+      yield put(routerRedux.push('/recharge/rechargePage/result'));
+    },
     *submitAdvancedForm({ payload }, { call }) {
       yield call(fakeSubmitForm, payload);
       message.success('提交成功');

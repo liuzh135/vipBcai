@@ -4,6 +4,7 @@ import Link from 'umi/link';
 import router from 'umi/router';
 import { Form, Input, Button, Select, Row, Col, Popover, Progress } from 'antd';
 import styles from './Register.less';
+import TopNavHeader from '../../components/TopNavHeader';
 
 const FormItem = Form.Item;
 const { Option } = Select;
@@ -21,13 +22,12 @@ const passwordProgressMap = {
   poor: 'exception',
 };
 
-export default
 @connect(({ register, loading }) => ({
   register,
   submitting: loading.effects['register/submit'],
 }))
 @Form.create()
-class Register extends Component {
+export default class Register extends Component {
   state = {
     count: 0,
     confirmDirty: false,
