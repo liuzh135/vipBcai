@@ -2,7 +2,7 @@ import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
 import { fakeAccountLogin, getFakeCaptcha } from '@/services/api';
 import { setAuthority } from '@/utils/authority';
-import { getPageQuery } from '@/utils/utils';
+import { getPageQuery, getLocalStorage, setLocalStorage } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
 
 export default {
@@ -10,6 +10,7 @@ export default {
 
   state: {
     status: undefined,
+    token: null,
   },
 
   effects: {
@@ -27,6 +28,7 @@ export default {
 
       // Login successfully
       if (response.status === 'ok') {
+        setLocalStorage('loginData', response);
         reloadAuthorized();
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
@@ -59,6 +61,9 @@ export default {
           currentAuthority: 'guest',
         },
       });
+
+      localStorage.removeItem('loginData');
+
       reloadAuthorized();
       yield put(
         routerRedux.push({
@@ -72,6 +77,12 @@ export default {
   },
 
   reducers: {
+    getToken(state, { payload }) {
+      return {
+        ...state,
+        userToken: payload.data,
+      };
+    },
     changeLoginStatus(state, { payload }) {
       setAuthority(payload.currentAuthority);
       return {
@@ -79,7 +90,21 @@ export default {
         status: payload.status,
         type: payload.type,
         message: payload.message,
+        userToken: payload.data,
       };
+    },
+  },
+  subscriptions: {
+    setup({ dispatch }) {
+      const data = getLocalStorage('loginData');
+      if (!data) {
+        window.g_app._store.dispatch({ type: 'login/logout' });
+      } else {
+        dispatch({
+          type: 'getToken',
+          payload: data,
+        });
+      }
     },
   },
 };

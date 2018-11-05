@@ -15,58 +15,118 @@ const formItemLayout = {
   },
 };
 
-@connect(({ form }) => ({
-  data: form.step,
-}))
+@connect(({ rechargesteps, user, login }) => {
+  return {
+    data: rechargesteps.step,
+    bank: user.bank,
+    token: login.userToken,
+  };
+})
 @Form.create()
 export default class Step1 extends React.PureComponent {
+  componentWillReceiveProps(nextProps) {
+    const { bank } = this.props;
+    const banknew = nextProps.bank;
+    if (!bank && !banknew) return;
+    if (
+      (banknew.data && !bank.data) ||
+      banknew.data.managerPayAccount !== bank.data.managerPayAccount
+    ) {
+      banknew &&
+        banknew.data &&
+        this.props.form.setFields({
+          receiverAccount: {
+            value: banknew.data.managerPayAccount,
+          },
+          receiverName: {
+            value: banknew.data.managerPayAccountName,
+          },
+        });
+    }
+  }
+
+  componentDidMount() {
+    const { bank } = this.props;
+    bank &&
+      bank.data &&
+      bank.data.managerPayAccount &&
+      this.props.form.setFields({
+        receiverAccount: {
+          value: bank.data.managerPayAccount,
+        },
+        receiverName: {
+          value: bank.data.managerPayAccountName,
+        },
+      });
+  }
+
+  selectChange = value => {
+    const { bank } = this.props;
+    bank && bank.data && this.fetchBank(value);
+  };
+
+  /**
+   * 获取管理员卡号
+   * */
+  fetchBank = type => {
+    const { dispatch, token } = this.props;
+    dispatch({
+      type: 'user/fetchbank',
+      payload: {
+        token: token.token,
+        type: type, //默认网银转账
+      },
+    });
+  };
+
   render() {
-    const { form, dispatch, data } = this.props;
+    const { form, dispatch, data, bank } = this.props;
+
     const { getFieldDecorator, validateFields } = form;
     const onValidateForm = () => {
       validateFields((err, values) => {
         if (!err) {
           dispatch({
-            type: 'form/saveStepFormData',
-            payload: values,
+            type: 'rechargesteps/getStepData',
+            payload: {
+              ...values,
+              managerPayAccountBank: bank.data ? bank.data.managerPayAccountBank : '',
+            },
           });
           router.push('/recharge/rechargePage/confirm');
         }
       });
     };
+    const type = bank.data ? bank.data.managerPayAccountType : 1;
     return (
       <Fragment>
         <Form layout="horizontal" className={styles.stepForm} hideRequiredMark>
-          <Form.Item {...formItemLayout} label="付款账户">
-            {getFieldDecorator('payAccount', {
-              initialValue: data.payAccount,
-              rules: [{ required: true, message: '请选择付款账户' }],
-            })(
-              <Select placeholder="test@example.com">
-                <Option value="ant-design@alipay.com">ant-design@alipay.com</Option>
-              </Select>
-            )}
-          </Form.Item>
+          {/*<Form.Item {...formItemLayout} label="付款账户">*/}
+          {/*{getFieldDecorator('payAccount', {*/}
+          {/*initialValue: data.payAccount,*/}
+          {/*rules: [{ required: true, message: '请选择付款账户' }],*/}
+          {/*})(*/}
+          {/*(<Input />)*/}
+          {/*)}*/}
+          {/*</Form.Item>*/}
           <Form.Item {...formItemLayout} label="收款账户">
             <Input.Group compact>
-              <Select defaultValue="alipay" style={{ width: 100 }}>
-                <Option value="alipay">支付宝</Option>
-                <Option value="bank">银行账户</Option>
+              <Select defaultValue={type + ''} style={{ width: 100 }} onChange={this.selectChange}>
+                <Option value="1">银行账户</Option>
+                <Option value="2">支付宝</Option>
+                <Option value="3">微信</Option>
               </Select>
               {getFieldDecorator('receiverAccount', {
-                initialValue: data.receiverAccount,
-                rules: [
-                  { required: true, message: '请输入收款人账户' },
-                  { type: 'email', message: '账户名应为邮箱格式' },
-                ],
-              })(<Input style={{ width: 'calc(100% - 100px)' }} placeholder="test@example.com" />)}
+                // initialValue: data.receiverAccount,
+                rules: [{ required: true, message: '请输入收款人账户' }],
+              })(<Input disabled style={{ width: 'calc(100% - 100px)' }} />)}
             </Input.Group>
           </Form.Item>
           <Form.Item {...formItemLayout} label="收款人姓名">
             {getFieldDecorator('receiverName', {
-              initialValue: data.receiverName,
+              // initialValue: data.receiverName,
               rules: [{ required: true, message: '请输入收款人姓名' }],
-            })(<Input placeholder="请输入收款人姓名" />)}
+            })(<Input disabled placeholder="请输入收款人姓名" />)}
           </Form.Item>
           <Form.Item {...formItemLayout} label="转账金额">
             {getFieldDecorator('amount', {
@@ -98,13 +158,13 @@ export default class Step1 extends React.PureComponent {
         <Divider style={{ margin: '40px 0 24px' }} />
         <div className={styles.desc}>
           <h3>说明</h3>
-          <h4>转账到支付宝账户</h4>
+          <h4>转账账户</h4>
           <p>
-            如果需要，这里可以放一些关于产品的常见问题说明。如果需要，这里可以放一些关于产品的常见问题说明。如果需要，这里可以放一些关于产品的常见问题说明。
+            支持任意形式的转账，包括银行、支付宝、和微信转账。线下转账，本系统提交转账充值申请即可。工作人员会在2个工作日内审核完成。
           </p>
-          <h4>转账到银行卡</h4>
+          <h4>转账信息</h4>
           <p>
-            如果需要，这里可以放一些关于产品的常见问题说明。如果需要，这里可以放一些关于产品的常见问题说明。如果需要，这里可以放一些关于产品的常见问题说明。
+            转账信息的收款账户是系统随机选取的管理员收款帐号，用户确认好线下打款的帐号是否正确，否则可能会导致审核不通过！
           </p>
         </div>
       </Fragment>

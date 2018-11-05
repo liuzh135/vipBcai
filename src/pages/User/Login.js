@@ -60,7 +60,6 @@ class LoginPage extends Component {
 
   render() {
     const { login, submitting } = this.props;
-    console.log('login load print' + JSON.stringify(this.props));
     const { type, autoLogin } = this.state;
     return (
       <div className={styles.main}>

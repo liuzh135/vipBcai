@@ -2,13 +2,14 @@ import React, { PureComponent, Fragment } from 'react';
 import { Card, Steps } from 'antd';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from '../../Forms/style.less';
+import { connect } from 'dva';
 
 // import { Route, Redirect, Switch } from 'dva/router';
 // import { getRoutes } from '@/utils/utils';
 
 const { Step } = Steps;
 
-export default class RechargeStepForm extends PureComponent {
+class RechargeStepForm extends PureComponent {
   getCurrentStep() {
     const { location } = this.props;
     const { pathname } = location;
@@ -25,8 +26,19 @@ export default class RechargeStepForm extends PureComponent {
     }
   }
 
+  componentDidMount() {
+    const { dispatch, token } = this.props;
+    dispatch({
+      type: 'user/fetchbank',
+      payload: {
+        token: token.token,
+        type: 1, //默认网银转账
+      },
+    });
+  }
+
   render() {
-    const { location, children } = this.props;
+    const { location, children, currentUser, bank } = this.props;
     return (
       <PageHeaderWrapper
         title="转账充值"
@@ -47,3 +59,9 @@ export default class RechargeStepForm extends PureComponent {
     );
   }
 }
+
+export default connect(({ user, login }) => ({
+  currentUser: user.currentUser,
+  bank: user.bank,
+  token: login.userToken,
+}))(RechargeStepForm);

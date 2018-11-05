@@ -1,6 +1,8 @@
 import { stringify } from 'qs';
 import request from '@/utils/request';
 
+export const BASEWYZK = 'http://120.77.252.48:8888';
+
 export async function queryProjectNotice() {
   return request('/api/project/notice');
 }
@@ -39,6 +41,26 @@ export async function updateRule(params) {
     body: {
       ...params,
       method: 'update',
+    },
+  });
+}
+
+export async function removeRechar(params) {
+  return request('/api/getrechar', {
+    method: 'POST',
+    body: {
+      ...params,
+      method: 'delete',
+    },
+  });
+}
+
+export async function addRechar(params) {
+  return request('/api/getrechar', {
+    method: 'POST',
+    body: {
+      ...params,
+      method: 'post',
     },
   });
 }
@@ -108,7 +130,9 @@ export async function fakeAccountLogin(params) {
   //   method: 'POST',
   //   body: params,
   // });
-  return request(`http://120.77.252.48/sso/login?${stringify(params)}`);
+  // return request(`http://120.77.252.48/sso/login?${stringify(params)}`);
+  return request(BASEWYZK + `/game/user/app/login?${stringify(params)}`);
+
   // return request('http://120.77.252.48/sso/login',{
   //     method: 'POST',
   //     body: params,

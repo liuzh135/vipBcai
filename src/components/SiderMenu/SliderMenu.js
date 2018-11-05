@@ -117,12 +117,20 @@ export default class SiderMenu extends PureComponent {
             <h1>vipBocai</h1>
           </Link>
         </div>
+
         {!collapsed && currentUser && Object.keys(currentUser).length ? (
           <div className={styles.logouser} key="logouser" id="logouser">
             <div className={styles.avatarHolder}>
-              <img alt="" src={currentUser.avatar} />
-              <div className={styles.name}>{currentUser.name}</div>
-              <div className={styles.name}>{currentUser.signature}</div>
+              <img
+                alt=""
+                src={
+                  currentUser.avatar
+                    ? currentUser.avatar
+                    : 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'
+                }
+              />
+              <div className={styles.name}>{currentUser.realname}</div>
+              <div className={styles.name}>{'当前积分:' + currentUser.integralValue}</div>
             </div>
             <div className={styles.detail}>
               <Button type="primary" onClick={onRecharge} style={{ backgroundColor: '#ff6162' }}>

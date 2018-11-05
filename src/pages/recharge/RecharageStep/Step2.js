@@ -16,26 +16,40 @@ const formItemLayout = {
 
 @Form.create()
 class Step2 extends React.PureComponent {
+  // componentDidMount() {
+  //   const { data } = this.props;
+  //   if (!data || !data.receiverAccount) {//帐号信息确认有问题
+  //     router.push('/recharge/rechargePage/info');
+  //   }
+  // }
+
   render() {
-    const { form, data, dispatch, submitting } = this.props;
+    const { form, data, dispatch, submitting, token, bank } = this.props;
+    const type = data.managerPayAccountBank ? data.managerPayAccountBank : 'null';
     const { getFieldDecorator, validateFields } = form;
+
     const onPrev = () => {
       router.push('/recharge/rechargePage/info');
     };
+
     const onValidateForm = e => {
       e.preventDefault();
       validateFields((err, values) => {
         if (!err) {
           dispatch({
-            type: 'form/submitRechargeStepForm',
+            type: 'rechargesteps/submitRechargeStepForm',
             payload: {
-              ...data,
-              ...values,
+              chargeValue: data.amount,
+              token: token.token,
+              userManagerPayAccountId: bank.data.userManagerPayAccountId,
+              chargeType: bank.data.managerPayAccountType,
+              remarkCode: bank.data.remarkCode,
             },
           });
         }
       });
     };
+
     return (
       <Form layout="horizontal" className={styles.stepForm}>
         <Alert
@@ -44,9 +58,13 @@ class Step2 extends React.PureComponent {
           message="确认转账后，资金将直接打入对方账户，无法退回。"
           style={{ marginBottom: 24 }}
         />
-        <Form.Item {...formItemLayout} className={styles.stepFormText} label="付款账户">
-          {data.payAccount}
+        {/*<Form.Item {...formItemLayout} className={styles.stepFormText} label="付款账户">*/}
+        {/*{data.payAccount}*/}
+        {/*</Form.Item>*/}
+        <Form.Item {...formItemLayout} className={styles.stepFormText} label="收款账户类型">
+          {type}
         </Form.Item>
+
         <Form.Item {...formItemLayout} className={styles.stepFormText} label="收款账户">
           {data.receiverAccount}
         </Form.Item>
@@ -58,17 +76,17 @@ class Step2 extends React.PureComponent {
           <span className={styles.uppercase}>（{digitUppercase(data.amount)}）</span>
         </Form.Item>
         <Divider style={{ margin: '24px 0' }} />
-        <Form.Item {...formItemLayout} label="支付密码">
-          {getFieldDecorator('password', {
-            initialValue: '123456',
-            rules: [
-              {
-                required: true,
-                message: '需要支付密码才能进行支付',
-              },
-            ],
-          })(<Input type="password" autoComplete="off" style={{ width: '80%' }} />)}
-        </Form.Item>
+        {/*<Form.Item {...formItemLayout} label="支付密码">*/}
+        {/*{getFieldDecorator('password', {*/}
+        {/*initialValue: '123456',*/}
+        {/*rules: [*/}
+        {/*{*/}
+        {/*required: true,*/}
+        {/*message: '需要支付密码才能进行支付',*/}
+        {/*},*/}
+        {/*],*/}
+        {/*})(<Input type="password" autoComplete="off" style={{ width: '80%' }} />)}*/}
+        {/*</Form.Item>*/}
         <Form.Item
           style={{ marginBottom: 8 }}
           wrapperCol={{
@@ -92,7 +110,9 @@ class Step2 extends React.PureComponent {
   }
 }
 
-export default connect(({ form, loading }) => ({
-  submitting: loading.effects['form/submitStepForm'],
-  data: form.step,
+export default connect(({ rechargesteps, user, loading, login }) => ({
+  submitting: loading.effects['rechargesteps/submitRechargeStepForm'],
+  data: rechargesteps.step,
+  bank: user.bank,
+  token: login.userToken,
 }))(Step2);

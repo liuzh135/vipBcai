@@ -25,11 +25,17 @@ export default [
         component: './UserCenter/UserCenterInfo',
       },
       {
+        path: '/excharge',
+        name: 'excharge',
+        icon: 'pie-chart',
+        component: './Excharge/exchargeList',
+      },
+      {
         //充值提现
         name: 'recharge',
         icon: 'pay-circle',
         path: '/recharge',
-        hideInMenu: true,
+        hideInMenu: false,
         routes: [
           {
             path: '/recharge/rechargePage',
@@ -124,6 +130,7 @@ export default [
         path: '/dashboard',
         name: 'dashboard',
         icon: 'dashboard',
+        hideInMenu: true,
         routes: [
           {
             path: '/dashboard/analysis',
@@ -147,6 +154,7 @@ export default [
         path: '/form',
         icon: 'form',
         name: 'form',
+        hideInMenu: true,
         routes: [
           {
             path: '/form/basic-form',
@@ -193,6 +201,7 @@ export default [
         path: '/list',
         icon: 'table',
         name: 'list',
+        hideInMenu: true,
         routes: [
           {
             path: '/list/table-list',
@@ -237,6 +246,7 @@ export default [
         path: '/profile',
         name: 'profile',
         icon: 'profile',
+        hideInMenu: true,
         routes: [
           // profile
           {
@@ -255,6 +265,7 @@ export default [
         name: 'result',
         icon: 'check-circle-o',
         path: '/result',
+        hideInMenu: true,
         routes: [
           // result
           {
@@ -269,6 +280,7 @@ export default [
         name: 'exception',
         icon: 'warning',
         path: '/exception',
+        hideInMenu: true,
         routes: [
           // exception
           {
@@ -298,6 +310,7 @@ export default [
         name: 'account',
         icon: 'user',
         path: '/account',
+        hideInMenu: true,
         routes: [
           {
             path: '/account/center',

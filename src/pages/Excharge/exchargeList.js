@@ -36,19 +36,19 @@ const getValue = obj =>
     .join(',');
 const statusMap = ['default', 'processing', 'success', 'error'];
 const status = ['银行', '支付宝', '微信'];
-const recharstatus = ['待充值', '已充值', '作废', '驳回'];
+const recharstatus = ['待兑换', '已兑换', '作废', '驳回'];
 
 /***
- * 充值审核列表
+ * 提现审核列表
  */
 /* eslint react/no-multi-comp:0 */
-@connect(({ recharlist, login, loading }) => ({
-  recharlist,
+@connect(({ excharge, login, loading }) => ({
+  excharge,
   token: login.userToken,
-  loading: loading.models.recharlist,
+  loading: loading.models.excharge,
 }))
 @Form.create()
-export default class UserCenterInfo extends PureComponent {
+export default class exchargeList extends PureComponent {
   state = {
     selectedRows: [],
     formValues: {},
@@ -60,8 +60,8 @@ export default class UserCenterInfo extends PureComponent {
       dataIndex: 'username',
     },
     {
-      title: '充值金额',
-      dataIndex: 'chargeValue',
+      title: '提现金额',
+      dataIndex: 'exchangeValue',
       // sorter: true,
       align: 'right',
       render: val => `${val} 元`,
@@ -69,19 +69,8 @@ export default class UserCenterInfo extends PureComponent {
       needTotal: true,
     },
     {
-      title: '转账类型',
-      dataIndex: 'chargeType',
-      render(val) {
-        return <Badge status={statusMap[val - 1]} text={status[val - 1]} />;
-      },
-    },
-    {
-      title: '备注码',
-      dataIndex: 'remarkCode',
-    },
-    {
-      title: '充值状态',
-      dataIndex: 'chargeStatus',
+      title: '申请兑换状态',
+      dataIndex: 'exchangeStatus',
       filters: [
         {
           text: recharstatus[0],
@@ -106,28 +95,34 @@ export default class UserCenterInfo extends PureComponent {
     },
 
     {
-      title: '管理员支付账号银行',
+      title: '提取流水号',
       align: 'center',
-      dataIndex: 'managerPayAccountBank',
+      dataIndex: 'exchangeNo',
     },
     {
-      title: '管理员支付账号名称',
+      title: '发卡行名称',
       align: 'center',
-      dataIndex: 'managerPayAccountName',
+      dataIndex: 'userPayAccountBank',
+    },
+    {
+      title: '支付卡号',
+      align: 'center',
+      dataIndex: 'userPayAccount',
+    },
+    {
+      title: '卡号账号姓名',
+      align: 'center',
+      dataIndex: 'userPayAccountName',
     },
     {
       title: '账号类型',
-      dataIndex: 'managerPayAccountType',
+      dataIndex: 'userPayAccountType',
       render(val) {
         return <Badge status={statusMap[val - 1]} text={status[val - 1]} />;
       },
     },
     {
-      title: '管理员账号',
-      dataIndex: 'managerPayAccount',
-    },
-    {
-      title: '充值时间',
+      title: '提现时间',
       dataIndex: 'createTime',
       // sorter: true,
       render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
@@ -150,7 +145,7 @@ export default class UserCenterInfo extends PureComponent {
   componentDidMount() {
     const { dispatch, token } = this.props;
     dispatch({
-      type: 'recharlist/fetch',
+      type: 'excharge/fetch',
       payload: {
         token: token.token,
       },
@@ -178,7 +173,7 @@ export default class UserCenterInfo extends PureComponent {
     }
     const token = this.props.token.token;
     dispatch({
-      type: 'recharlist/fetch',
+      type: 'excharge/fetch',
       payload: { ...params, token },
     });
   };
@@ -191,33 +186,9 @@ export default class UserCenterInfo extends PureComponent {
     });
     const token = this.props.token.token;
     dispatch({
-      type: 'recharlist/fetch',
+      type: 'excharge/fetch',
       payload: { token },
     });
-  };
-
-  handleMenuClick = e => {
-    const { dispatch } = this.props;
-    const { selectedRows } = this.state;
-
-    if (!selectedRows) return;
-    switch (e.key) {
-      case 'remove':
-        dispatch({
-          type: 'recharlist/remove',
-          payload: {
-            key: selectedRows.map(row => row.key),
-          },
-          callback: () => {
-            this.setState({
-              selectedRows: [],
-            });
-          },
-        });
-        break;
-      default:
-        break;
-    }
   };
 
   handleSelectRows = rows => {
@@ -246,7 +217,7 @@ export default class UserCenterInfo extends PureComponent {
       const token = this.props.token.token;
       // console.log('----values-->' + JSON.stringify(values));
       dispatch({
-        type: 'recharlist/fetch',
+        type: 'excharge/fetch',
         payload: { ...values, token },
       });
     });
@@ -256,7 +227,7 @@ export default class UserCenterInfo extends PureComponent {
     const { dispatch } = this.props;
     const token = this.props.token.token;
     const updateRecharge = {
-      type: 'recharlist/update',
+      type: 'excharge/update',
       callback: response => {
         if (response && response.code === 0) {
           message.success('审核通过');
@@ -267,7 +238,7 @@ export default class UserCenterInfo extends PureComponent {
     };
 
     const rejectRecharge = {
-      type: 'recharlist/reject',
+      type: 'excharge/reject',
       callback: response => {
         if (response && response.code === 0) {
           message.success('驳回成功');
@@ -277,12 +248,12 @@ export default class UserCenterInfo extends PureComponent {
       },
     };
 
-    const params = id === 1 ? updateRecharge : rejectRecharge;
+    const params = id === '1' ? updateRecharge : rejectRecharge;
 
     dispatch({
       payload: {
-        chargeStatus: id,
-        chargeId: fields.chargeId,
+        exchangeStatus: id,
+        exchangeId: fields.exchangeId,
         token,
       },
       ...params,
@@ -305,12 +276,12 @@ export default class UserCenterInfo extends PureComponent {
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="充值帐号">
+            <FormItem label="提现帐号">
               {getFieldDecorator('username')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="充值状态">
+            <FormItem label="提现兑换状态">
               {getFieldDecorator('chargeStatus')(
                 <Select placeholder="请选择" style={{ width: '100%' }}>
                   {menuOption}
@@ -334,26 +305,26 @@ export default class UserCenterInfo extends PureComponent {
   }
 
   passAndDelete = (key, currentItem) => {
-    if (currentItem.chargeStatus === 1) {
-      message.error('充值申请已处理，如有疑问，请联系系统管理员。');
+    if (currentItem.exchangeStatus === '1') {
+      message.error('提现申请已处理，如有疑问，请联系系统管理员。');
       return;
     }
-    if (currentItem.chargeStatus === 0) {
+    if (currentItem.exchangeStatus === '0') {
       if (key === 'pass') {
         Modal.confirm({
-          title: '充值申请通过',
-          content: '确定充值申请审核通过吗？',
+          title: '提现申请通过',
+          content: '确定提现申请审核通过吗？',
           okText: '确认',
           cancelText: '取消',
-          onOk: () => this.handleUpdate(currentItem, 1),
+          onOk: () => this.handleUpdate(currentItem, '1'),
         });
       } else if (key === 'bohui') {
         Modal.confirm({
-          title: '充值申请驳回',
-          content: '确定充值申请审核驳回吗？',
+          title: '提现申请驳回',
+          content: '确定提现申请审核驳回吗？',
           okText: '确认',
           cancelText: '取消',
-          onOk: () => this.handleUpdate(currentItem, 3),
+          onOk: () => this.handleUpdate(currentItem, '3'),
         });
       }
     } else {
@@ -363,18 +334,18 @@ export default class UserCenterInfo extends PureComponent {
 
   //表格行 key 的取值，可以是字符串或一个函数
   handleReKey = record => {
-    return record.chargeId;
+    return record.exchangeId;
   };
 
   render() {
     const {
-      recharlist: { data },
+      excharge: { data },
       loading,
     } = this.props;
 
     const { selectedRows } = this.state;
     return (
-      <PageHeaderWrapper title="充值列表">
+      <PageHeaderWrapper title="提现列表">
         <Card bordered={false}>
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderSimpleForm()}</div>

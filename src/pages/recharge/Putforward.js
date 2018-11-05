@@ -3,23 +3,14 @@
  */
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import {
-  Form,
-  Input,
-  DatePicker,
-  Select,
-  Button,
-  Card,
-  InputNumber,
-  Radio,
-  Icon,
-  Tooltip,
-  Modal,
-} from 'antd';
+import { digitUppercase } from '@/utils/utils';
+import { Form, Input, DatePicker, Select, Button, Card, message, Radio, Icon, Modal } from 'antd';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from '../Forms/style.less';
 import moment from 'moment';
 import Result from '@/components/Result';
+import AccountSelect from './AccountSelect';
+import router from 'umi/router';
 
 const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
@@ -29,25 +20,174 @@ const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
 
-@connect(({ loading, form }) => ({
+const CreateForm = Form.create()(props => {
+  const { visible, done, handleDone, handleCancel } = props;
+
+  const formLayout = {
+    labelCol: { span: 7 },
+    wrapperCol: { span: 13 },
+  };
+
+  const handleSubmit = e => {
+    const { handleAdd, form } = props;
+    e.preventDefault();
+    form.validateFieldsAndScroll((err, values) => {
+      console.log('---->' + JSON.stringify(values));
+      if (err) return;
+      const userPayAccountBankString =
+        values.accountType === 1 ? '支付宝' : values.accountType === 2 ? '微信' : '网上银行';
+      const parms = {
+        userPayAccountName: values.accountName,
+        userPayAccount: values.owner,
+        userPayAccountType: values.accountType,
+        userPayAccountBank: userPayAccountBankString,
+      };
+      handleAdd(parms);
+    });
+  };
+
+  const modalFooter = done
+    ? { footer: null, onCancel: handleDone }
+    : { okText: '保存', onOk: handleSubmit, onCancel: handleCancel };
+
+  const getModalContent = () => {
+    if (done) {
+      return (
+        <Result
+          type="success"
+          title="操作成功"
+          description="添加成功"
+          actions={
+            <Button type="primary" onClick={handleDone}>
+              知道了
+            </Button>
+          }
+          className={styles.formResult}
+        />
+      );
+    }
+
+    const {
+      form: { getFieldDecorator },
+    } = props;
+
+    return (
+      <Form onSubmit={handleSubmit}>
+        <FormItem label="收款人" {...formLayout}>
+          {getFieldDecorator('accountName', {
+            rules: [{ required: true, message: '请选择收款人' }],
+          })(<Input placeholder="请输入收款人" />)}
+        </FormItem>
+
+        <FormItem label="收款方式" {...formLayout}>
+          {getFieldDecorator('accountType', {
+            rules: [{ required: true, message: '选择收款方式' }],
+          })(
+            <RadioGroup>
+              <Radio value={1}>网上银行</Radio>
+              <Radio value={2}>支付宝</Radio>
+              <Radio value={3}>微信</Radio>
+            </RadioGroup>
+          )}
+        </FormItem>
+
+        <FormItem label="收款帐号" {...formLayout}>
+          {getFieldDecorator('owner', {
+            rules: [{ required: true, message: '请输入收款帐号' }],
+          })(<Input placeholder="请输入收款帐号" />)}
+        </FormItem>
+
+        <FormItem {...formLayout} label="帐号备注">
+          {getFieldDecorator('subDescription', {
+            rules: [{ message: '请输入至少五个字符的备注！', min: 5 }],
+          })(<TextArea rows={4} placeholder="请输入至少五个字符" />)}
+        </FormItem>
+      </Form>
+    );
+  };
+
+  return (
+    <Modal
+      title={done ? null : '添加收款帐号'}
+      className={styles.standardListForm}
+      width={640}
+      bodyStyle={done ? { padding: '72px 0' } : { padding: '28px 28px' }}
+      destroyOnClose
+      visible={visible}
+      {...modalFooter}
+    >
+      {getModalContent()}
+    </Modal>
+  );
+});
+
+@connect(({ loading, login, user }) => ({
   submitting: loading.effects['form/submitRegularForm'],
-  data: form.step,
+  token: login.userToken,
+  currentUser: user.currentUser,
+  exchargeList: user.exchargeList,
 }))
 @Form.create()
 export default class Putforward extends PureComponent {
   state = { visible: false, done: false };
 
-  handleSubmit = e => {
-    const { dispatch, form } = this.props;
+  handleSubAdd = parms => {
+    const { dispatch, token } = this.props;
+    dispatch({
+      type: 'user/addexchargeAccount',
+      payload: {
+        ...parms,
+        token: token.token,
+      },
+      callback: response => {
+        if (response.code !== 0) {
+          message.error(response.msg ? response.msg : '添加失败');
+          this.setState({
+            done: false,
+            visible: false,
+          });
+        } else {
+          dispatch({
+            type: 'user/fetchexchargeList',
+            payload: {
+              token: token.token,
+            },
+          });
+          this.setState({
+            done: true,
+            visible: true,
+          });
+        }
+      },
+    });
+  };
+
+  handleSubmitAccount = e => {
+    const { dispatch, token, form } = this.props;
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
       if (err) return;
-      this.setState({
-        done: true,
-      });
       dispatch({
-        type: 'form/submitRegularForm',
-        payload: values,
+        type: 'user/addExcharge',
+        payload: {
+          token: token.token,
+          userPayAccountId: values.receiverAccount,
+          exchangeValue: values.exchangeValue,
+        },
+        callback: response => {
+          if (response.code !== 0) {
+            message.error(response.msg ? response.msg : '提交失败');
+          } else {
+            //提现成功获取最新的积分
+            dispatch({
+              type: 'user/fetchCurrent',
+              payload: {
+                token: token.token,
+              },
+            });
+            router.push('/excharge'); //跳转到提现审核列表
+          }
+        },
       });
     });
   };
@@ -72,8 +212,26 @@ export default class Putforward extends PureComponent {
     });
   };
 
+  /**
+   * 获取提现帐号
+   * */
+  componentDidMount() {
+    const { dispatch, token } = this.props;
+    dispatch({
+      type: 'user/fetchexchargeList',
+      payload: {
+        token: token.token,
+      },
+    });
+  }
+
+  onExchargeChange = excharge => {
+    console.log('--excharge-->' + JSON.stringify(excharge));
+  };
+
   render() {
-    const { submitting, data } = this.props;
+    const { submitting, currentUser, exchargeList, form } = this.props;
+
     const {
       form: { getFieldDecorator, getFieldValue },
     } = this.props;
@@ -97,92 +255,42 @@ export default class Putforward extends PureComponent {
       },
     };
 
-    const { visible, done } = this.state;
+    const accountJf = currentUser.integralValue || null;
 
-    const modalFooter = done
-      ? { footer: null, onCancel: this.handleDone }
-      : { okText: '保存', onOk: this.handleSubmit, onCancel: this.handleCancel };
-
-    const getModalContent = () => {
-      if (done) {
-        return (
-          <Result
-            type="success"
-            title="操作成功"
-            description="一系列的信息描述，很短同样也可以带标点。"
-            actions={
-              <Button type="primary" onClick={this.handleDone}>
-                知道了
-              </Button>
-            }
-            className={styles.formResult}
-          />
-        );
-      }
-      return (
-        <Form onSubmit={this.handleSubmit}>
-          <FormItem label="收款人" {...this.formLayout}>
-            {getFieldDecorator('title', {
-              rules: [{ required: true, message: '请选择收款人' }],
-            })(<Input placeholder="请输入收款人" />)}
-          </FormItem>
-
-          <FormItem label="收款方式" {...this.formLayout}>
-            {getFieldDecorator('fangshi', {
-              rules: [{ required: true, message: '选择收款方式' }],
-            })(
-              <RadioGroup>
-                <Radio value="weixin">微信</Radio>
-                <Radio value="zhifubao">支付宝</Radio>
-                <Radio value="wbank">网上银行</Radio>
-              </RadioGroup>
-            )}
-          </FormItem>
-
-          <FormItem label="收款帐号" {...this.formLayout}>
-            {getFieldDecorator('owner', {
-              rules: [{ required: true, message: '请输入收款帐号' }],
-            })(<Input placeholder="请输入收款帐号" />)}
-          </FormItem>
-
-          <FormItem {...this.formLayout} label="帐号备注">
-            {getFieldDecorator('subDescription', {
-              rules: [{ message: '请输入至少五个字符的备注！', min: 5 }],
-            })(<TextArea rows={4} placeholder="请输入至少五个字符" />)}
-          </FormItem>
-        </Form>
-      );
-    };
-
+    const { done, visible } = this.state;
     return (
       <PageHeaderWrapper
         title="提现"
         content="提现申请提交之后，系统管理员会在2个工作日内将钱款打到提现账户，请用户耐心等待。"
       >
         <Card bordered={false}>
-          <Form onSubmit={this.handleSubmit} style={{ marginTop: 8 }}>
+          <Form onSubmit={this.handleSubmitAccount} style={{ marginTop: 8 }}>
             <FormItem {...formItemLayout} label="可提现金额">
-              <span className="ant-form-text">200</span>
+              <span className={styles.money}>{accountJf}</span>
+              <span className={styles.uppercase}>（{digitUppercase(accountJf)}）</span>
             </FormItem>
 
-            <FormItem {...formItemLayout} label="收款帐号">
-              <Input.Group compact>
-                <Select defaultValue="alipay" style={{ width: 100 }}>
-                  <Option value="alipay">支付宝</Option>
-                  <Option value="weixin">微信</Option>
-                  <Option value="bank">银行账户</Option>
-                </Select>
-                {getFieldDecorator('receiverAccount', {
-                  initialValue: data.receiverAccount,
-                  rules: [
-                    { required: true, message: '请输入收款人账户' },
-                    { type: 'email', message: '账户名应为邮箱格式' },
-                  ],
-                })(
-                  <Input style={{ width: 'calc(100% - 100px)' }} placeholder="test@example.com" />
-                )}
-              </Input.Group>
-            </FormItem>
+            <AccountSelect
+              form={form}
+              formItemLayout={formItemLayout}
+              getFieldDecorator={getFieldDecorator}
+              list={exchargeList}
+              name={'receiverAccount'}
+              onChange={this.onExchargeChange}
+            />
+
+            {/*<FormItem {...formItemLayout} label="收款帐号">*/}
+            {/*<Input.Group compact>*/}
+            {/*<AccountSelect list={exchargeList} onChange={this.onExchargeChange}/>*/}
+            {/*{getFieldDecorator('receiverAccount', {*/}
+            {/*rules: [*/}
+            {/*{ required: true},*/}
+            {/*],*/}
+            {/*})(*/}
+            {/*<Input style={{ width: 'calc(100% - 100px)' }}/>*/}
+            {/*)}*/}
+            {/*</Input.Group>*/}
+            {/*</FormItem>*/}
 
             <FormItem {...formItemLayout} label="添加收款帐号">
               <Button
@@ -195,14 +303,14 @@ export default class Putforward extends PureComponent {
             </FormItem>
 
             <FormItem {...formItemLayout} label="提现金额">
-              {getFieldDecorator('jinr', {
+              {getFieldDecorator('exchangeValue', {
                 rules: [{ required: true, message: '选择提现金额' }],
               })(
                 <RadioGroup>
-                  <Radio value="a">100</Radio>
-                  <Radio value="b">200</Radio>
-                  <Radio value="c">500</Radio>
-                  <Radio value="d">1000</Radio>
+                  <Radio value={100}>100</Radio>
+                  <Radio value={200}>200</Radio>
+                  <Radio value={500}>500</Radio>
+                  <Radio value={1000}>1000</Radio>
                 </RadioGroup>
               )}
             </FormItem>
@@ -218,29 +326,29 @@ export default class Putforward extends PureComponent {
               })(<TextArea style={{ minHeight: 32 }} placeholder="请输入提现详情" rows={4} />)}
             </FormItem>
 
-            <Form.Item
-              {...formItemLayout}
-              label={
-                <span>
-                  支付密码
-                  <em className={styles.optional}>
-                    （安全保护）
-                    <Tooltip title="用户登录密码">
-                      <Icon type="info-circle-o" style={{ marginRight: 4, marginLeft: 4 }} />
-                    </Tooltip>
-                  </em>
-                </span>
-              }
-            >
-              {getFieldDecorator('password', {
-                rules: [
-                  {
-                    required: true,
-                    message: '需要支付密码才能进行支付',
-                  },
-                ],
-              })(<Input type="password" autoComplete="off" style={{ width: '100%' }} />)}
-            </Form.Item>
+            {/*<Form.Item*/}
+            {/*{...formItemLayout}*/}
+            {/*label={*/}
+            {/*<span>*/}
+            {/*支付密码*/}
+            {/*<em className={styles.optional}>*/}
+            {/*（安全保护）*/}
+            {/*<Tooltip title="用户登录密码">*/}
+            {/*<Icon type="info-circle-o" style={{ marginRight: 4, marginLeft: 4 }} />*/}
+            {/*</Tooltip>*/}
+            {/*</em>*/}
+            {/*</span>*/}
+            {/*}*/}
+            {/*>*/}
+            {/*{getFieldDecorator('password', {*/}
+            {/*rules: [*/}
+            {/*{*/}
+            {/*required: true,*/}
+            {/*message: '需要支付密码才能进行支付',*/}
+            {/*},*/}
+            {/*],*/}
+            {/*})(<Input type="password" autoComplete="off" style={{ width: '100%' }} />)}*/}
+            {/*</Form.Item>*/}
 
             <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
               <Button type="primary" block htmlType="submit" loading={submitting}>
@@ -249,17 +357,13 @@ export default class Putforward extends PureComponent {
             </FormItem>
           </Form>
 
-          <Modal
-            title={done ? null : '添加收款帐号'}
-            className={styles.standardListForm}
-            width={640}
-            bodyStyle={done ? { padding: '72px 0' } : { padding: '28px 28px' }}
-            destroyOnClose
+          <CreateForm
             visible={visible}
-            {...modalFooter}
-          >
-            {getModalContent()}
-          </Modal>
+            done={done}
+            handleDone={this.handleDone}
+            handleCancel={this.handleCancel}
+            handleAdd={this.handleSubAdd}
+          />
         </Card>
       </PageHeaderWrapper>
     );

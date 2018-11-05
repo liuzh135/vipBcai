@@ -96,13 +96,27 @@ class BasicLayout extends React.PureComponent {
   };
 
   componentDidMount() {
-    const { dispatch } = this.props;
+    const { dispatch, token } = this.props;
+    if (!token) {
+      window.g_app._store.dispatch({ type: 'login/logout' });
+      return;
+    }
     dispatch({
       type: 'user/fetchCurrent',
+      payload: {
+        token: token.token,
+      },
     });
     dispatch({
       type: 'setting/getSetting',
     });
+    dispatch({
+      type: 'user/fetchIntegral',
+      payload: {
+        token: token.token,
+      },
+    });
+
     this.renderRef = requestAnimationFrame(() => {
       this.setState({
         rendering: false,
@@ -179,13 +193,13 @@ class BasicLayout extends React.PureComponent {
     const currRouterData = this.matchParamsPath(pathname);
 
     if (!currRouterData) {
-      return 'Ant Design Pro';
+      return 'VipBc Pro';
     }
     const message = formatMessage({
       id: currRouterData.locale || currRouterData.name,
       defaultMessage: currRouterData.name,
     });
-    return `${message} - Ant Design Pro`;
+    return `${message} - VipBc Pro`;
   };
 
   getLayoutStyle = () => {
@@ -264,6 +278,7 @@ class BasicLayout extends React.PureComponent {
             {...this.props}
           />
         )}
+
         <Layout
           style={{
             ...this.getLayoutStyle(),
@@ -306,9 +321,10 @@ class BasicLayout extends React.PureComponent {
   }
 }
 
-export default connect(({ user, global, setting }) => ({
+export default connect(({ user, global, setting, login }) => ({
   currentUser: user.currentUser,
   collapsed: global.collapsed,
   layout: setting.layout,
+  token: login.userToken,
   ...setting,
 }))(BasicLayout);
