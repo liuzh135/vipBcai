@@ -4,6 +4,7 @@ import { fakeAccountLogin, getFakeCaptcha } from '@/services/api';
 import { setAuthority } from '@/utils/authority';
 import { getPageQuery, getLocalStorage, setLocalStorage } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
+import router from 'umi/router';
 
 export default {
   namespace: 'login',
@@ -11,12 +12,12 @@ export default {
   state: {
     status: undefined,
     token: null,
+    userToken: '',
   },
 
   effects: {
     *login({ payload }, { call, put }) {
       const response = yield call(fakeAccountLogin, payload);
-      console.log('------response----->' + JSON.stringify(response));
       //重组数据
       response.status = response.code === 0 ? 'ok' : 'error';
       response.type = payload.type;
@@ -61,16 +62,25 @@ export default {
           currentAuthority: 'guest',
         },
       });
+      console.log('*****logout*****');
 
       localStorage.removeItem('loginData');
 
       reloadAuthorized();
+      let uri = window.location.href;
+      if (uri && uri.indexOf("redirect") === -1){
+            uri = {
+              search: stringify({
+                redirect: window.location.href,
+              })
+            }
+      } else {
+        uri = {};
+      }
       yield put(
         routerRedux.push({
           pathname: '/user/login',
-          search: stringify({
-            redirect: window.location.href,
-          }),
+          ...uri,
         })
       );
     },
@@ -89,7 +99,7 @@ export default {
         ...state,
         status: payload.status,
         type: payload.type,
-        message: payload.message,
+        message: payload.msg,
         userToken: payload.data,
       };
     },
@@ -97,8 +107,12 @@ export default {
   subscriptions: {
     setup({ dispatch }) {
       const data = getLocalStorage('loginData');
+      console.log("-subscriptions -- login-data-->" + JSON.stringify(data));
       if (!data) {
-        window.g_app._store.dispatch({ type: 'login/logout' });
+        let uri = window.location.href;
+        if (uri.indexOf('/user/login') === -1){
+          window.g_app._store.dispatch({ type: 'login/logout' });
+        }
       } else {
         dispatch({
           type: 'getToken',
