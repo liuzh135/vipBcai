@@ -5,6 +5,7 @@ import {
   updateRechar,
   rejectRechar,
 } from '@/services/charge';
+import { message } from 'antd';
 
 export default {
   namespace: 'recharlist',
@@ -19,10 +20,14 @@ export default {
   effects: {
     *fetch({ payload }, { call, put }) {
       const response = yield call(queryRecharList, payload);
-      yield put({
-        type: 'save',
-        payload: response,
-      });
+      if (response && response.code === 0) {
+        yield put({
+          type: 'save',
+          payload: response,
+        });
+      } else {
+        message.error(response.msg ? response.msg : '获取失败');
+      }
     },
     *add({ payload, callback }, { call, put }) {
       const response = yield call(addRechar, payload);

@@ -33,6 +33,15 @@ export async function queryExchargeList(params) {
 }
 
 /**
+ * 删除提现帐号
+ * @param params
+ * @returns {Promise<void>}
+ */
+export async function deleteCard(params) {
+  return request(BASEWYZK + `/game/integral/exchange/account/delete?${stringify(params)}`);
+}
+
+/**
  * 新增提现帐号
  * @param params
  * @returns {Promise<void>}

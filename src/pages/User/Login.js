@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import { connect } from 'dva';
-import Link from 'umi/link';
-import { Checkbox, Alert, Icon } from 'antd';
+import { Alert, Checkbox } from 'antd';
 import Login from '@/components/Login';
 import styles from './Login.less';
 
 const { Tab, UserName, Password, Mobile, Captcha, Submit } = Login;
 
+/**
+ * 登录页面
+ */
 class LoginPage extends Component {
   state = {
     type: 'account',
@@ -61,6 +63,7 @@ class LoginPage extends Component {
   render() {
     const { login, submitting } = this.props;
     const { type, autoLogin } = this.state;
+
     return (
       <div className={styles.main}>
         <Login
@@ -75,22 +78,22 @@ class LoginPage extends Component {
             {login.status === 'error' &&
               login.type === 'account' &&
               !submitting &&
-              this.renderMessage(login.message ? login.message : '账户或密码错误（admin/888888）')}
-            <UserName name="username" placeholder="admin/user" />
+              this.renderMessage(login.message ? login.message : '登录失败')}
+            <UserName name="username" placeholder="请输入帐号" />
             <Password
               name="password"
-              placeholder="888888/123456"
+              placeholder="请输入密码"
               onPressEnter={() => this.loginForm.validateFields(this.handleSubmit)}
             />
           </Tab>
-          <Tab key="mobile" tab="手机号登录">
-            {login.status === 'error' &&
-              login.type === 'mobile' &&
-              !submitting &&
-              this.renderMessage('验证码错误')}
-            <Mobile name="mobile" />
-            <Captcha name="vcode" countDown={120} onGetCaptcha={this.onGetCaptcha} />
-          </Tab>
+          {/*<Tab key="mobile" tab="手机号登录">*/}
+          {/*{login.status === 'error' &&*/}
+          {/*login.type === 'mobile' &&*/}
+          {/*!submitting &&*/}
+          {/*this.renderMessage('验证码错误')}*/}
+          {/*<Mobile name="mobile" />*/}
+          {/*<Captcha name="vcode" countDown={120} onGetCaptcha={this.onGetCaptcha} />*/}
+          {/*</Tab>*/}
           <div>
             <Checkbox checked={autoLogin} onChange={this.changeAutoLogin}>
               自动登录

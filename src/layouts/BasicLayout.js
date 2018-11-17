@@ -97,14 +97,17 @@ class BasicLayout extends React.PureComponent {
 
   componentDidMount() {
     const { dispatch, token } = this.props;
-    if (!token) {
+    // console.log("--token-->" + JSON.stringify(token));
+    if (!token || !token.userToken) {
+      // console.log("--logout-->" );
       window.g_app._store.dispatch({ type: 'login/logout' });
+      // dispatch({ type: 'login/logout' });
       return;
     }
     dispatch({
       type: 'user/fetchCurrent',
       payload: {
-        token: token.token,
+        token: token.userToken.token,
       },
     });
     dispatch({
@@ -113,7 +116,7 @@ class BasicLayout extends React.PureComponent {
     dispatch({
       type: 'user/fetchIntegral',
       payload: {
-        token: token.token,
+        token: token.userToken.token,
       },
     });
 
@@ -315,7 +318,7 @@ class BasicLayout extends React.PureComponent {
             )}
           </ContainerQuery>
         </DocumentTitle>
-        {this.renderSettingDrawer()}
+        {/*{this.renderSettingDrawer()}*/}
       </React.Fragment>
     );
   }
@@ -325,6 +328,6 @@ export default connect(({ user, global, setting, login }) => ({
   currentUser: user.currentUser,
   collapsed: global.collapsed,
   layout: setting.layout,
-  token: login.userToken,
+  token: login,
   ...setting,
 }))(BasicLayout);

@@ -2,11 +2,11 @@ import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import Link from 'umi/link';
 import router from 'umi/router';
-import { Card, Row, Col, Icon, Avatar, Tag, Divider, Spin, Input } from 'antd';
+import { Card, Row, Col, Icon, Avatar, Tag, Divider, Spin, Input, Button } from 'antd';
 import GridContent from '@/components/PageHeaderWrapper/GridContent';
+import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from './Center.less';
 
-export default
 @connect(({ loading, user, project }) => ({
   listLoading: loading.effects['list/fetch'],
   currentUser: user.currentUser,
@@ -14,40 +14,26 @@ export default
   project,
   projectLoading: loading.effects['project/fetchNotice'],
 }))
-class Center extends PureComponent {
+export default class Center extends PureComponent {
   state = {
     newTags: [],
     inputVisible: false,
     inputValue: '',
   };
 
-  componentDidMount() {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'user/fetchCurrent',
-    });
-    dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 8,
-      },
-    });
-    dispatch({
-      type: 'project/fetchNotice',
-    });
-  }
+  componentDidMount() {}
 
   onTabChange = key => {
     const { match } = this.props;
     switch (key) {
-      case 'articles':
-        router.push(`${match.url}/articles`);
+      case 'chargeHistory':
+        router.push(`${match.url}/chargeHistory`);
         break;
-      case 'applications':
-        router.push(`${match.url}/applications`);
+      case 'exchargeHistory':
+        router.push(`${match.url}/exchargeHistory`);
         break;
-      case 'projects':
-        router.push(`${match.url}/projects`);
+      case 'accountList':
+        router.push(`${match.url}/accountList`);
         break;
       default:
         break;
@@ -80,6 +66,10 @@ class Center extends PureComponent {
     });
   };
 
+  onRecharge = () => {};
+
+  onPutForward = () => {};
+
   render() {
     const { newTags, inputVisible, inputValue } = this.state;
     const {
@@ -93,125 +83,74 @@ class Center extends PureComponent {
       children,
     } = this.props;
 
-    console.log("--------->children = " + children);
-
     const operationTabList = [
       {
-        key: 'articles',
-        tab: (
-          <span>
-            文章 <span style={{ fontSize: 14 }}>(8)</span>
-          </span>
-        ),
+        key: 'chargeHistory',
+        tab: <span>充值记录</span>,
       },
       {
-        key: 'applications',
-        tab: (
-          <span>
-            应用 <span style={{ fontSize: 14 }}>(8)</span>
-          </span>
-        ),
+        key: 'exchargeHistory',
+        tab: <span>提现记录</span>,
       },
       {
-        key: 'projects',
-        tab: (
-          <span>
-            项目 <span style={{ fontSize: 14 }}>(8)</span>
-          </span>
-        ),
+        key: 'accountList',
+        tab: <span>提现卡片</span>,
       },
     ];
 
     return (
-      <GridContent className={styles.userCenter}>
-        <Row gutter={24}>
-          <Col lg={7} md={24}>
-            <Card bordered={false} style={{ marginBottom: 24 }} loading={currentUserLoading}>
-              {currentUser && Object.keys(currentUser).length ? (
-                <div>
-                  <div className={styles.avatarHolder}>
-                    <img alt="" src={currentUser.avatar} />
-                    <div className={styles.name}>{currentUser.name}</div>
-                    <div>{currentUser.signature}</div>
+      <PageHeaderWrapper title="个人中心">
+        <GridContent className={styles.userCenter}>
+          <Row gutter={24}>
+            <Col lg={7} md={24}>
+              <Card bordered={false} style={{ marginBottom: 24 }} loading={currentUserLoading}>
+                {currentUser && Object.keys(currentUser).length ? (
+                  <div>
+                    <div className={styles.logouser} key="logouser" id="logouser">
+                      <div className={styles.avatarHolder}>
+                        <img
+                          alt=""
+                          src={
+                            currentUser.avatar
+                              ? currentUser.avatar
+                              : 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'
+                          }
+                        />
+                        <div className={styles.name}>{currentUser.realname}</div>
+                        <div className={styles.name}>{'当前积分:' + currentUser.integralValue}</div>
+                        <div className={styles.name}>{'邀请码:' + currentUser.inviteCode}</div>
+                      </div>
+                      {/*<div className={styles.detail} style={{textAlign:'center'}}>*/}
+                      {/*<Button type="primary" onClick={this.onRecharge} style={{ backgroundColor: '#ff6162' }}>*/}
+                      {/*充值*/}
+                      {/*</Button>*/}
+                      {/*<Button type="primary" onClick={this.onPutForward} style={{ marginLeft: '20px' }}>*/}
+                      {/*提现*/}
+                      {/*</Button>*/}
+                      {/*</div>*/}
+                    </div>
+                    <Divider dashed />
                   </div>
-                  <div className={styles.detail}>
-                    <p>
-                      <i className={styles.title} />
-                      {currentUser.title}
-                    </p>
-                    <p>
-                      <i className={styles.group} />
-                      {currentUser.group}
-                    </p>
-                    <p>
-                      <i className={styles.address} />
-                      {currentUser.geographic.province.label}
-                      {currentUser.geographic.city.label}
-                    </p>
-                  </div>
-                  <Divider dashed />
-                  <div className={styles.tags}>
-                    <div className={styles.tagsTitle}>标签</div>
-                    {currentUser.tags.concat(newTags).map(item => (
-                      <Tag key={item.key}>{item.label}</Tag>
-                    ))}
-                    {inputVisible && (
-                      <Input
-                        ref={this.saveInputRef}
-                        type="text"
-                        size="small"
-                        style={{ width: 78 }}
-                        value={inputValue}
-                        onChange={this.handleInputChange}
-                        onBlur={this.handleInputConfirm}
-                        onPressEnter={this.handleInputConfirm}
-                      />
-                    )}
-                    {!inputVisible && (
-                      <Tag
-                        onClick={this.showInput}
-                        style={{ background: '#fff', borderStyle: 'dashed' }}
-                      >
-                        <Icon type="plus" />
-                      </Tag>
-                    )}
-                  </div>
-                  <Divider style={{ marginTop: 16 }} dashed />
-                  <div className={styles.team}>
-                    <div className={styles.teamTitle}>团队</div>
-                    <Spin spinning={projectLoading}>
-                      <Row gutter={36}>
-                        {notice.map(item => (
-                          <Col key={item.id} lg={24} xl={12}>
-                            <Link to={item.href}>
-                              <Avatar size="small" src={item.logo} />
-                              {item.member}
-                            </Link>
-                          </Col>
-                        ))}
-                      </Row>
-                    </Spin>
-                  </div>
-                </div>
-              ) : (
-                'loading...'
-              )}
-            </Card>
-          </Col>
-          <Col lg={17} md={24}>
-            <Card
-              className={styles.tabsCard}
-              bordered={false}
-              tabList={operationTabList}
-              activeTabKey={location.pathname.replace(`${match.path}/`, '')}
-              onTabChange={this.onTabChange}
-              loading={listLoading}
-            >
-              {children}
-            </Card>
-          </Col>
-        </Row>
-      </GridContent>
+                ) : (
+                  'loading...'
+                )}
+              </Card>
+            </Col>
+            <Col lg={17} md={24}>
+              <Card
+                className={styles.tabsCard}
+                bordered={false}
+                tabList={operationTabList}
+                activeTabKey={location.pathname.replace(`${match.path}/`, '')}
+                onTabChange={this.onTabChange}
+                loading={listLoading}
+              >
+                {children}
+              </Card>
+            </Col>
+          </Row>
+        </GridContent>
+      </PageHeaderWrapper>
     );
   }
 }

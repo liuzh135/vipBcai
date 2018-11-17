@@ -59,14 +59,14 @@ export default class GlobalHeaderRight extends PureComponent {
     } = this.props;
     const menu = (
       <Menu className={styles.menu} selectedKeys={[]} onClick={onMenuClick}>
-        {/*<Menu.Item key="userCenter">*/}
-        {/*<Icon type="user" />*/}
-        {/*<FormattedMessage id="menu.account.center" defaultMessage="account center" />*/}
-        {/*</Menu.Item>*/}
-        {/*<Menu.Item key="userinfo">*/}
-        {/*<Icon type="setting" />*/}
-        {/*<FormattedMessage id="menu.account.settings" defaultMessage="account settings" />*/}
-        {/*</Menu.Item>*/}
+        <Menu.Item key="userCenter">
+          <Icon type="user" style={{ color: '#1890FF' }} />
+          <FormattedMessage id="menu.account.center" defaultMessage="account center" />
+        </Menu.Item>
+        <Menu.Item key="index">
+          <Icon type="red-envelope" theme="twoTone" twoToneColor="#eb2f96" />
+          <FormattedMessage id="menu.index.competition" defaultMessage="Participate in guessing" />
+        </Menu.Item>
         {/*<Menu.Item key="triggerError">*/}
         {/*<Icon type="close-circle" />*/}
         {/*<FormattedMessage id="menu.account.trigger" defaultMessage="Trigger Error" />*/}
@@ -74,7 +74,7 @@ export default class GlobalHeaderRight extends PureComponent {
         <Menu.Divider />
         <Menu.Item key="logout">
           <Icon type="logout" />
-          退出登录
+          <FormattedMessage id="menu.account.logout" defaultMessage="logout" />
         </Menu.Item>
       </Menu>
     );
@@ -156,18 +156,18 @@ export default class GlobalHeaderRight extends PureComponent {
         ) : (
           <Spin size="small" style={{ marginLeft: 8, marginRight: 8 }} />
         )}
-        <Button
-          size="small"
-          ghost={theme === 'dark'}
-          style={{
-            margin: '0 8px',
-          }}
-          onClick={() => {
-            this.changLang();
-          }}
-        >
-          <FormattedMessage id="navbar.lang" />
-        </Button>
+        {/*<Button*/}
+        {/*size="small"*/}
+        {/*ghost={theme === 'dark'}*/}
+        {/*style={{*/}
+        {/*margin: '0 8px',*/}
+        {/*}}*/}
+        {/*onClick={() => {*/}
+        {/*this.changLang();*/}
+        {/*}}*/}
+        {/*>*/}
+        {/*<FormattedMessage id="navbar.lang" />*/}
+        {/*</Button>*/}
       </div>
     );
   }

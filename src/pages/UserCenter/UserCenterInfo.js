@@ -1,35 +1,13 @@
-import React, { PureComponent, Fragment } from 'react';
+import React, { Fragment, PureComponent } from 'react';
 import { connect } from 'dva';
 import moment from 'moment';
-import {
-  Row,
-  Col,
-  Card,
-  Form,
-  Input,
-  Select,
-  Icon,
-  Button,
-  Dropdown,
-  Menu,
-  DatePicker,
-  Modal,
-  message,
-  Badge,
-  Divider,
-  Steps,
-  Radio,
-} from 'antd';
+import { Badge, Button, Card, Col, Divider, Form, Input, message, Modal, Row, Select } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
-
 import styles from '../List/TableList.less';
 
 const FormItem = Form.Item;
-const { Step } = Steps;
-const { TextArea } = Input;
 const { Option } = Select;
-const RadioGroup = Radio.Group;
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
@@ -44,7 +22,7 @@ const recharstatus = ['待充值', '已充值', '作废', '驳回'];
 /* eslint react/no-multi-comp:0 */
 @connect(({ recharlist, login, loading }) => ({
   recharlist,
-  token: login.userToken,
+  token: login,
   loading: loading.models.recharlist,
 }))
 @Form.create()
@@ -100,6 +78,7 @@ export default class UserCenterInfo extends PureComponent {
           value: 3,
         },
       ],
+      filterMultiple: false,
       render(val) {
         return <Badge status={statusMap[val]} text={recharstatus[val]} />;
       },
@@ -152,7 +131,7 @@ export default class UserCenterInfo extends PureComponent {
     dispatch({
       type: 'recharlist/fetch',
       payload: {
-        token: token.token,
+        token: token.userToken.token,
       },
     });
   }
@@ -176,7 +155,7 @@ export default class UserCenterInfo extends PureComponent {
     if (sorter.field) {
       params.sorter = `${sorter.field}_${sorter.order}`;
     }
-    const token = this.props.token.token;
+    const token = this.props.token.userToken.token;
     dispatch({
       type: 'recharlist/fetch',
       payload: { ...params, token },
@@ -189,7 +168,7 @@ export default class UserCenterInfo extends PureComponent {
     this.setState({
       formValues: {},
     });
-    const token = this.props.token.token;
+    const token = this.props.token.userToken.token;
     dispatch({
       type: 'recharlist/fetch',
       payload: { token },
@@ -243,7 +222,7 @@ export default class UserCenterInfo extends PureComponent {
         formValues: values,
       });
 
-      const token = this.props.token.token;
+      const token = this.props.token.userToken.token;
       // console.log('----values-->' + JSON.stringify(values));
       dispatch({
         type: 'recharlist/fetch',
@@ -254,7 +233,7 @@ export default class UserCenterInfo extends PureComponent {
 
   handleUpdate = (fields, id) => {
     const { dispatch } = this.props;
-    const token = this.props.token.token;
+    const token = this.props.token.userToken.token;
     const updateRecharge = {
       type: 'recharlist/update',
       callback: response => {
@@ -301,6 +280,7 @@ export default class UserCenterInfo extends PureComponent {
         </Option>
       );
     });
+
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
@@ -373,6 +353,7 @@ export default class UserCenterInfo extends PureComponent {
     } = this.props;
 
     const { selectedRows } = this.state;
+
     return (
       <PageHeaderWrapper title="充值列表">
         <Card bordered={false}>

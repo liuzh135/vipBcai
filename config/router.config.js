@@ -10,6 +10,18 @@ export default [
       { path: '/user/register-result', component: './User/RegisterResult' },
     ],
   },
+  {
+    path: '/index',
+    component: '../layouts/BasicBocaiIndexLayout',
+    routes: [
+      { path: '/index', redirect: '/index/competition' },
+      {
+        path: '/index/competition',
+        name: 'competition',
+        component: './Index',
+      },
+    ],
+  },
   // app
   {
     path: '/',
@@ -17,18 +29,52 @@ export default [
     Routes: ['src/pages/Authorized'],
     routes: [
       // user info
-      { path: '/', redirect: '/usercenter' },
+      { path: '/', redirect: '/account/usercenter' },
+
       {
-        path: '/usercenter',
+        path: '/account/usercenter',
         name: 'usercenter',
         icon: 'home',
-        component: './UserCenter/UserCenterInfo',
+        component: './Account/Center/Center',
+        routes: [
+          {
+            path: '/account/usercenter',
+            redirect: '/account/usercenter/chargeHistory',
+          },
+          {
+            path: '/account/usercenter/chargeHistory',
+            component: './Account/Center/ChargeHistory',
+          },
+          {
+            path: '/account/usercenter/exchargeHistory',
+            component: './Account/Center/ExchargeHistory',
+          },
+          {
+            path: '/account/usercenter/accountList',
+            component: './Account/Center/AccountList',
+          },
+        ],
       },
       {
-        path: '/excharge',
-        name: 'excharge',
-        icon: 'pie-chart',
-        component: './Excharge/exchargeList',
+        path: '/charge',
+        name: 'charge',
+        icon: 'star',
+        routes: [
+          {
+            path: '/charge',
+            redirect: '/charge/recharge',
+          },
+          {
+            path: '/charge/recharge',
+            name: 'recharge',
+            component: './UserCenter/UserCenterInfo',
+          },
+          {
+            path: '/charge/excharge',
+            name: 'excharge',
+            component: './Excharge/exchargeList',
+          },
+        ],
       },
       {
         //充值提现
@@ -96,6 +142,12 @@ export default [
             path: '/manager/deletevip',
             name: 'deletevip',
             component: './AccountManager/DeleteVipList',
+          },
+          {
+            name: 'adduseroragent',
+            path: '/manager/adduseroragent',
+            hideInMenu: true,
+            component: './AccountManager/AddUserOrAgent',
           },
         ],
       },
@@ -319,7 +371,19 @@ export default [
             routes: [
               {
                 path: '/account/center',
-                redirect: '/account/center/articles',
+                redirect: '/account/center/chargeHistory',
+              },
+              {
+                path: '/account/center/chargeHistory',
+                component: './Account/Center/ChargeHistory',
+              },
+              {
+                path: '/account/center/exchargeHistory',
+                component: './Account/Center/ExchargeHistory',
+              },
+              {
+                path: '/account/center/accountList',
+                component: './Account/Center/AccountList',
               },
               {
                 path: '/account/center/articles',

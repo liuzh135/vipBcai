@@ -1,0 +1,101 @@
+@banner: banner-anim;
+.@{banner} {
+  position: relative;
+  overflow: hidden;
+  min-height: 100px;
+  &-elem {
+    height: 100%;
+    & > * {
+      position: relative;
+    }
+    &-mask {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+    }
+  }
+  &-arrow {
+    cursor: pointer;
+    position: absolute;
+    z-index: 10;
+    &-default {
+      position: absolute;
+      width: 20px;
+      height: 60px;
+      margin-top: -30px;
+      background: fade(#000, 30);
+      &.next {
+        right: 0;
+      }
+      &.next,
+      &.prev {
+        &:before,
+        &:after {
+          width: 2px;
+          height: 15px;
+          background: #fff;
+          display: block;
+          content: ' ';
+          position: absolute;
+        }
+      }
+      &.next {
+        &:before {
+          transform: rotate(-40deg);
+          top: 18px;
+          left: 10px;
+        }
+        &:after {
+          transform: rotate(40deg);
+          bottom: 17px;
+          left: 10px;
+        }
+      }
+      &.prev {
+        &:before {
+          transform: rotate(40deg);
+          top: 18px;
+          left: 8px;
+        }
+        &:after {
+          transform: rotate(-40deg);
+          bottom: 17px;
+          left: 8px;
+        }
+      }
+    }
+  }
+  &-thumb {
+    position: absolute;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    text-align: center;
+    pointer-events: none;
+    z-index: 10;
+    & > span {
+      pointer-events: auto;
+      cursor: pointer;
+      display: inline-block;
+      list-style: none;
+    }
+    &-default {
+      height: 40px;
+      line-height: 40px;
+      & span {
+        width: 8px;
+        height: 8px;
+        border-radius: 8px;
+        margin: 0 5px;
+        background: fade(#666, 35);
+        transition: background 0.3s;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.25);
+        &:active,
+        &.active {
+          background: #fff;
+        }
+      }
+    }
+  }
+}

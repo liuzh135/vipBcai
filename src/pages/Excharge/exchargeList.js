@@ -89,6 +89,7 @@ export default class exchargeList extends PureComponent {
           value: 3,
         },
       ],
+      filterMultiple: false,
       render(val) {
         return <Badge status={statusMap[val]} text={recharstatus[val]} />;
       },

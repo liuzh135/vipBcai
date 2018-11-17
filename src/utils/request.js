@@ -1,10 +1,13 @@
 import fetch from 'dva/fetch';
-import { notification } from 'antd';
+import { notification, Button, Icon } from 'antd';
 import router from 'umi/router';
 import hash from 'hash.js';
 import { isAntdPro } from './utils';
+import React from 'react';
+import { FormattedMessage } from 'umi/locale';
 
 const codeMessage = {
+  1001: '缺少参数。',
   200: '服务器成功返回请求的数据。',
   201: '新建或修改数据成功。',
   202: '一个请求已经进入后台排队（异步任务）。',
@@ -20,6 +23,7 @@ const codeMessage = {
   502: '网关错误。',
   503: '服务不可用，服务器暂时过载或维护。',
   504: '网关超时。',
+  1009: 'token已经失效。',
 };
 
 const checkStatus = response => {
@@ -125,9 +129,17 @@ export default function request(url, option) {
       }
       return response.json();
     })
+    .then(response => {
+      // console.log('--response->' + JSON.stringify(response));
+      // if (response.code === 1007) {//没有操作权限
+      //   router.push('/exception/403');
+      // }
+      return response;
+    })
     .catch(e => {
       const status = e.name;
-      if (status === 401) {
+      if (status === 401 || status === 1009) {
+        //401(用户没有权限)或是1009(token失效了) 退出登录
         // @HACK
         /* eslint-disable no-underscore-dangle */
         window.g_app._store.dispatch({ type: 'login/logout' });
@@ -144,6 +156,38 @@ export default function request(url, option) {
       }
       if (status >= 404 && status < 422) {
         router.push('/exception/404');
+        return;
+      }
+      //跨域问题---http错误  服务器处理
+      if (status === 'TypeError') {
+        showNotfication('系统请求错误,是否退出登录?', ` ${url}`);
       }
     });
+
+  function showNotfication(title, description) {
+    const key = `open${Date.now()}`;
+    const btn = (
+      <Button
+        type="primary"
+        size="small"
+        onClick={() => {
+          //退出登录 token返回异常
+          window.g_app._store.dispatch({
+            type: 'login/logout',
+          });
+          notification.close(key);
+        }}
+      >
+        <Icon type="logout"/>
+        退出登录
+      </Button>
+    );
+
+    notification.error({
+      message: title,
+      description: description,
+      btn,
+      key,
+    });
+  }
 }

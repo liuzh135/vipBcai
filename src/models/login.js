@@ -2,10 +2,14 @@ import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
 import { fakeAccountLogin, getFakeCaptcha } from '@/services/api';
 import { setAuthority } from '@/utils/authority';
-import { getPageQuery, getLocalStorage, setLocalStorage } from '@/utils/utils';
+import { getLocalStorage, getPageQuery, setLocalStorage } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
-import router from 'umi/router';
 
+/**
+ * 登录 model
+ *
+ * Authorized 处理用户权限和数据权限
+ */
 export default {
   namespace: 'login',
 
@@ -63,17 +67,15 @@ export default {
         },
       });
       console.log('*****logout*****');
-
       localStorage.removeItem('loginData');
-
       reloadAuthorized();
       let uri = window.location.href;
-      if (uri && uri.indexOf("redirect") === -1){
-            uri = {
-              search: stringify({
-                redirect: window.location.href,
-              })
-            }
+      if (uri && uri.indexOf('redirect') === -1) {
+        uri = {
+          search: stringify({
+            redirect: window.location.href,
+          }),
+        };
       } else {
         uri = {};
       }
@@ -88,6 +90,8 @@ export default {
 
   reducers: {
     getToken(state, { payload }) {
+      setAuthority(payload.currentAuthority);
+      reloadAuthorized();
       return {
         ...state,
         userToken: payload.data,
@@ -104,13 +108,14 @@ export default {
       };
     },
   },
+
   subscriptions: {
     setup({ dispatch }) {
       const data = getLocalStorage('loginData');
-      console.log("-subscriptions -- login-data-->" + JSON.stringify(data));
+      // console.log("-subscriptions -- login-data-->" + JSON.stringify(data));
       if (!data) {
         let uri = window.location.href;
-        if (uri.indexOf('/user/login') === -1){
+        if (uri.indexOf('/user/login') === -1) {
           window.g_app._store.dispatch({ type: 'login/logout' });
         }
       } else {

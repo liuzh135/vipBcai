@@ -4,24 +4,18 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import { digitUppercase } from '@/utils/utils';
-import { Form, Input, DatePicker, Select, Button, Card, message, Radio, Icon, Modal } from 'antd';
+import { Button, Card, Form, Icon, Input, message, Modal, Radio } from 'antd';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from '../Forms/style.less';
-import moment from 'moment';
-import Result from '@/components/Result';
 import AccountSelect from './AccountSelect';
 import router from 'umi/router';
 
-const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
-const SelectOption = Select.Option;
 const FormItem = Form.Item;
-const { Option } = Select;
-const { RangePicker } = DatePicker;
 const { TextArea } = Input;
 
 const CreateForm = Form.create()(props => {
-  const { visible, done, handleDone, handleCancel } = props;
+  const { visible, handleCancel } = props;
 
   const formLayout = {
     labelCol: { span: 7 },
@@ -32,10 +26,10 @@ const CreateForm = Form.create()(props => {
     const { handleAdd, form } = props;
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
-      console.log('---->' + JSON.stringify(values));
+      // console.log('---->' + JSON.stringify(values));
       if (err) return;
       const userPayAccountBankString =
-        values.accountType === 1 ? '支付宝' : values.accountType === 2 ? '微信' : '网上银行';
+        values.accountType === 2 ? '支付宝' : values.accountType === 3 ? '微信' : '网上银行';
       const parms = {
         userPayAccountName: values.accountName,
         userPayAccount: values.owner,
@@ -46,27 +40,9 @@ const CreateForm = Form.create()(props => {
     });
   };
 
-  const modalFooter = done
-    ? { footer: null, onCancel: handleDone }
-    : { okText: '保存', onOk: handleSubmit, onCancel: handleCancel };
+  const modalFooter = { okText: '保存', onOk: handleSubmit, onCancel: handleCancel };
 
   const getModalContent = () => {
-    if (done) {
-      return (
-        <Result
-          type="success"
-          title="操作成功"
-          description="添加成功"
-          actions={
-            <Button type="primary" onClick={handleDone}>
-              知道了
-            </Button>
-          }
-          className={styles.formResult}
-        />
-      );
-    }
-
     const {
       form: { getFieldDecorator },
     } = props;
@@ -108,10 +84,10 @@ const CreateForm = Form.create()(props => {
 
   return (
     <Modal
-      title={done ? null : '添加收款帐号'}
+      title={'添加收款帐号'}
       className={styles.standardListForm}
       width={640}
-      bodyStyle={done ? { padding: '72px 0' } : { padding: '28px 28px' }}
+      bodyStyle={{ padding: '28px 28px' }}
       destroyOnClose
       visible={visible}
       {...modalFooter}
@@ -129,7 +105,7 @@ const CreateForm = Form.create()(props => {
 }))
 @Form.create()
 export default class Putforward extends PureComponent {
-  state = { visible: false, done: false };
+  state = { visible: false };
 
   handleSubAdd = parms => {
     const { dispatch, token } = this.props;
@@ -142,10 +118,6 @@ export default class Putforward extends PureComponent {
       callback: response => {
         if (response.code !== 0) {
           message.error(response.msg ? response.msg : '添加失败');
-          this.setState({
-            done: false,
-            visible: false,
-          });
         } else {
           dispatch({
             type: 'user/fetchexchargeList',
@@ -153,11 +125,10 @@ export default class Putforward extends PureComponent {
               token: token.token,
             },
           });
-          this.setState({
-            done: true,
-            visible: true,
-          });
         }
+        this.setState({
+          visible: false,
+        });
       },
     });
   };
@@ -189,13 +160,6 @@ export default class Putforward extends PureComponent {
           }
         },
       });
-    });
-  };
-
-  handleDone = () => {
-    this.setState({
-      done: false,
-      visible: false,
     });
   };
 
@@ -359,8 +323,6 @@ export default class Putforward extends PureComponent {
 
           <CreateForm
             visible={visible}
-            done={done}
-            handleDone={this.handleDone}
             handleCancel={this.handleCancel}
             handleAdd={this.handleSubAdd}
           />

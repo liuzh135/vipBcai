@@ -1,4 +1,6 @@
 import { queryExchargeRecord, rejectExchar, updateExchar } from '@/services/charge';
+import { message } from 'antd';
+import router from 'umi/router';
 
 export default {
   namespace: 'excharge',
@@ -12,14 +14,18 @@ export default {
 
   effects: {
     //查询提现记录列表
-    *fetch({ payload }, { call, put }) {
+    * fetch({ payload }, { call, put }) {
       const response = yield call(queryExchargeRecord, payload);
-      yield put({
-        type: 'save',
-        payload: response,
-      });
+      if (response && response.code === 0) {
+        yield put({
+          type: 'save',
+          payload: response,
+        });
+      } else {
+        message.error(response.msg ? response.msg : '获取失败');
+      }
     },
-    *update({ payload, callback }, { call, put }) {
+    * update({ payload, callback }, { call, put }) {
       const response = yield call(updateExchar, payload);
       //成功之后 本地修改数据 不要去服务器拉去
       if (response && response.code === 0) {
@@ -31,7 +37,7 @@ export default {
 
       if (callback) callback(response);
     },
-    *reject({ payload, callback }, { call, put }) {
+    * reject({ payload, callback }, { call, put }) {
       const response = yield call(rejectExchar, payload);
       //成功之后 本地修改数据 不要去服务器拉去
       if (response && response.code === 0) {

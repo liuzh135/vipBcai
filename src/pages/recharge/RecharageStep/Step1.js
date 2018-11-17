@@ -26,11 +26,11 @@ const formItemLayout = {
 export default class Step1 extends React.PureComponent {
   componentWillReceiveProps(nextProps) {
     const { bank } = this.props;
-    const banknew = nextProps.bank;
+    const banknew = nextProps.bank || {};
     if (!bank && !banknew) return;
     if (
       (banknew.data && !bank.data) ||
-      banknew.data.managerPayAccount !== bank.data.managerPayAccount
+      (banknew.data && bank.data && banknew.data.managerPayAccount !== bank.data.managerPayAccount)
     ) {
       banknew &&
         banknew.data &&
@@ -97,7 +97,7 @@ export default class Step1 extends React.PureComponent {
         }
       });
     };
-    const type = bank.data ? bank.data.managerPayAccountType : 1;
+    const type = bank && bank.data ? bank.data.managerPayAccountType : 1;
     return (
       <Fragment>
         <Form layout="horizontal" className={styles.stepForm} hideRequiredMark>
