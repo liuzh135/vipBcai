@@ -4,7 +4,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import { digitUppercase } from '@/utils/utils';
-import { Button, Card, Form, Icon, Input, message, Modal, Radio } from 'antd';
+import { Button, Card, Form, Icon, Input, message, Modal, Radio, InputNumber } from 'antd';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from '../Forms/style.less';
 import AccountSelect from './AccountSelect';
@@ -52,7 +52,7 @@ const CreateForm = Form.create()(props => {
         <FormItem label="收款人" {...formLayout}>
           {getFieldDecorator('accountName', {
             rules: [{ required: true, message: '请选择收款人' }],
-          })(<Input placeholder="请输入收款人" />)}
+          })(<Input placeholder="请输入收款人"/>)}
         </FormItem>
 
         <FormItem label="收款方式" {...formLayout}>
@@ -63,20 +63,20 @@ const CreateForm = Form.create()(props => {
               <Radio value={1}>网上银行</Radio>
               <Radio value={2}>支付宝</Radio>
               <Radio value={3}>微信</Radio>
-            </RadioGroup>
+            </RadioGroup>,
           )}
         </FormItem>
 
         <FormItem label="收款帐号" {...formLayout}>
           {getFieldDecorator('owner', {
             rules: [{ required: true, message: '请输入收款帐号' }],
-          })(<Input placeholder="请输入收款帐号" />)}
+          })(<Input placeholder="请输入收款帐号"/>)}
         </FormItem>
 
         <FormItem {...formLayout} label="帐号备注">
           {getFieldDecorator('subDescription', {
             rules: [{ message: '请输入至少五个字符的备注！', min: 5 }],
-          })(<TextArea rows={4} placeholder="请输入至少五个字符" />)}
+          })(<TextArea rows={4} placeholder="请输入至少五个字符"/>)}
         </FormItem>
       </Form>
     );
@@ -105,7 +105,7 @@ const CreateForm = Form.create()(props => {
 }))
 @Form.create()
 export default class Putforward extends PureComponent {
-  state = { visible: false };
+  state = { visible: false, other: false };
 
   handleSubAdd = parms => {
     const { dispatch, token } = this.props;
@@ -138,12 +138,16 @@ export default class Putforward extends PureComponent {
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
       if (err) return;
+      let exchangeValue = values.exchangeValue;
+      if (exchangeValue === 0) {
+        exchangeValue = values.exchangeValueOther;
+      }
       dispatch({
         type: 'user/addExcharge',
         payload: {
           token: token.token,
           userPayAccountId: values.receiverAccount,
-          exchangeValue: values.exchangeValue,
+          exchangeValue: exchangeValue,
         },
         callback: response => {
           if (response.code !== 0) {
@@ -156,7 +160,7 @@ export default class Putforward extends PureComponent {
                 token: token.token,
               },
             });
-            router.push('/excharge'); //跳转到提现审核列表
+            router.push('/'); //跳转首页
           }
         },
       });
@@ -193,6 +197,15 @@ export default class Putforward extends PureComponent {
     console.log('--excharge-->' + JSON.stringify(excharge));
   };
 
+  onChange = (e) => {
+    console.log('radio checked', e.target.value);
+
+    this.setState({
+      other: e.target.value === 0,
+    });
+
+  };
+
   render() {
     const { submitting, currentUser, exchargeList, form } = this.props;
 
@@ -221,7 +234,9 @@ export default class Putforward extends PureComponent {
 
     const accountJf = currentUser.integralValue || null;
 
-    const { done, visible } = this.state;
+    const { other, visible } = this.state;
+
+    const styleOther = other ? { display: '' } : { display: 'none' };
     return (
       <PageHeaderWrapper
         title="提现"
@@ -243,26 +258,13 @@ export default class Putforward extends PureComponent {
               onChange={this.onExchargeChange}
             />
 
-            {/*<FormItem {...formItemLayout} label="收款帐号">*/}
-            {/*<Input.Group compact>*/}
-            {/*<AccountSelect list={exchargeList} onChange={this.onExchargeChange}/>*/}
-            {/*{getFieldDecorator('receiverAccount', {*/}
-            {/*rules: [*/}
-            {/*{ required: true},*/}
-            {/*],*/}
-            {/*})(*/}
-            {/*<Input style={{ width: 'calc(100% - 100px)' }}/>*/}
-            {/*)}*/}
-            {/*</Input.Group>*/}
-            {/*</FormItem>*/}
-
             <FormItem {...formItemLayout} label="添加收款帐号">
               <Button
                 type="dashed"
                 onClick={this.add}
                 style={{ width: '100%', textAlign: 'center' }}
               >
-                <Icon type="plus" /> Add
+                <Icon type="plus"/> Add
               </Button>
             </FormItem>
 
@@ -270,12 +272,23 @@ export default class Putforward extends PureComponent {
               {getFieldDecorator('exchangeValue', {
                 rules: [{ required: true, message: '选择提现金额' }],
               })(
-                <RadioGroup>
-                  <Radio value={100}>100</Radio>
-                  <Radio value={200}>200</Radio>
-                  <Radio value={500}>500</Radio>
-                  <Radio value={1000}>1000</Radio>
-                </RadioGroup>
+                  <RadioGroup onChange={this.onChange}>
+                    <Radio value={100}>100</Radio>
+                    <Radio value={200}>200</Radio>
+                    <Radio value={500}>500</Radio>
+                    <Radio value={1000}>1000</Radio>
+                    <Radio value={0}>其他金额</Radio>
+                  </RadioGroup>,
+              )}
+            </FormItem>
+
+            <FormItem {...formItemLayout} label="输入提现金额" style={styleOther}>
+              {getFieldDecorator('exchangeValueOther', {
+                rules: [{ required: other, message: '选择提现金额' }],
+              })(
+                <InputNumber
+                  min={0}
+                  placeholder="其他金额"/>,
               )}
             </FormItem>
 
@@ -287,7 +300,7 @@ export default class Putforward extends PureComponent {
                     message: '请输入提现详情',
                   },
                 ],
-              })(<TextArea style={{ minHeight: 32 }} placeholder="请输入提现详情" rows={4} />)}
+              })(<TextArea style={{ minHeight: 32 }} placeholder="请输入提现详情" rows={4}/>)}
             </FormItem>
 
             {/*<Form.Item*/}

@@ -20,12 +20,23 @@ export default {
   },
 
   effects: {
-    *login({ payload }, { call, put }) {
+    * login({ payload }, { call, put }) {
       const response = yield call(fakeAccountLogin, payload);
       //重组数据
       response.status = response.code === 0 ? 'ok' : 'error';
       response.type = payload.type;
-      response.currentAuthority = response.status === 'ok' ? 'admin' : 'error';
+      // response.currentAuthority = response.status === 'ok' ? 'admin' : 'error';
+      //帐号权限管理
+      if (response && response.data) {
+        if (response.data.isAgent) {
+          response.currentAuthority = 'agent';
+          console.log('account is agent');
+        }
+        if (response.data.isAdmin) {
+          response.currentAuthority = 'admin';
+          console.log('account is admin');
+        }
+      }
       yield put({
         type: 'changeLoginStatus',
         payload: response,
@@ -54,11 +65,11 @@ export default {
       }
     },
 
-    *getCaptcha({ payload }, { call }) {
+    * getCaptcha({ payload }, { call }) {
       yield call(getFakeCaptcha, payload);
     },
 
-    *logout(_, { put }) {
+    * logout(_, { put }) {
       yield put({
         type: 'changeLoginStatus',
         payload: {
@@ -83,7 +94,7 @@ export default {
         routerRedux.push({
           pathname: '/user/login',
           ...uri,
-        })
+        }),
       );
     },
   },

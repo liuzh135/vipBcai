@@ -52,7 +52,7 @@ export default class Step3 extends React.PureComponent {
         <Button type="primary" onClick={onFinish}>
           再转一笔
         </Button>
-        <Button onClick={onList}>查看账单</Button>
+        {/*<Button onClick={onList}>查看账单</Button>*/}
       </Fragment>
     );
     return (

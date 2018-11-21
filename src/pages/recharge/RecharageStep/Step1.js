@@ -100,7 +100,7 @@ export default class Step1 extends React.PureComponent {
     const type = bank && bank.data ? bank.data.managerPayAccountType : 1;
     return (
       <Fragment>
-        <Form layout="horizontal" className={styles.stepForm} hideRequiredMark>
+        <Form layout="horizontal" className={styles.stepForm} style={{margin:'40px auto 0'}} hideRequiredMark>
           {/*<Form.Item {...formItemLayout} label="付款账户">*/}
           {/*{getFieldDecorator('payAccount', {*/}
           {/*initialValue: data.payAccount,*/}

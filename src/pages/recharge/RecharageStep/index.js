@@ -4,9 +4,6 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from '../../Forms/style.less';
 import { connect } from 'dva';
 
-// import { Route, Redirect, Switch } from 'dva/router';
-// import { getRoutes } from '@/utils/utils';
-
 const { Step } = Steps;
 
 class RechargeStepForm extends PureComponent {
@@ -38,7 +35,7 @@ class RechargeStepForm extends PureComponent {
   }
 
   render() {
-    const { location, children, currentUser, bank } = this.props;
+    const { location, children} = this.props;
     return (
       <PageHeaderWrapper
         title="转账充值"
